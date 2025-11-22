@@ -1,0 +1,82 @@
+{
+  "common": {
+    "welcome": "欢迎",
+    "login": "登录",
+    "logout": "退出",
+    "register": "注册",
+    "search": "搜索",
+    "cart": "购物车",
+    "checkout": "结账",
+    "profile": "个人资料",
+    "home": "首页",
+    "products": "商品",
+    "categories": "分类",
+    "orders": "订单",
+    "language": "中/EN"
+  },
+  "home": {
+    "title": "提升您的购物体验",
+    "subtitle": "发现世界知名品牌的最新到货",
+    "exploreDeals": "探索优惠",
+    "shopByCategory": "按分类购物",
+    "featuredProducts": "精选商品",
+    "newArrivals": "本周新品",
+    "joinInnerCircle": "加入内部圈子",
+    "subscribe": "订阅"
+  },
+  "auth": {
+    "loginTitle": "登录您的账户",
+    "registerTitle": "创建您的账户",
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "firstName": "名",
+    "lastName": "姓",
+    "forgotPassword": "忘记密码？",
+    "dontHaveAccount": "还没有账户？",
+    "alreadyHaveAccount": "已有账户？",
+    "loginButton": "登录",
+    "registerButton": "注册"
+  },
+  "cart": {
+    "title": "购物车",
+    "continueShopping": "继续购物",
+    "emptyCart": "购物车是空的",
+    "startShopping": "开始购物",
+    "quantity": "数量",
+    "remove": "移除",
+    "subtotal": "小计",
+    "shipping": "运费",
+    "tax": "预估税费",
+    "total": "总计",
+    "proceedToCheckout": "前往结账"
+  },
+  "product": {
+    "addToCart": "加入购物车",
+    "outOfStock": "缺货",
+    "inStock": "有货",
+    "price": "价格",
+    "description": "描述",
+    "reviews": "评价",
+    "rating": "评分"
+  },
+  "seller": {
+    "dashboard": "卖家仪表板",
+    "products": "商品",
+    "orders": "订单",
+    "settings": "设置",
+    "totalRevenue": "总收入",
+    "activeOrders": "活跃订单",
+    "productViews": "商品浏览量"
+  },
+  "admin": {
+    "dashboard": "管理员仪表板",
+    "userManagement": "用户管理",
+    "categoryManagement": "分类管理",
+    "sellerManagement": "卖家管理",
+    "transactions": "交易",
+    "totalUsers": "总用户数",
+    "pendingSellers": "待审核卖家",
+    "platformRevenue": "平台收入"
+  }
+}
