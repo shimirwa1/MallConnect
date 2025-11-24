@@ -22,7 +22,9 @@ export const useAuthStore = defineStore('auth', () => {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
       return { success: true }
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || 'Login failed' }
+      console.error('Login error details:', error)
+      const message = error.response?.data?.message || error.message || 'Login failed'
+      return { success: false, message }
     }
   }
 

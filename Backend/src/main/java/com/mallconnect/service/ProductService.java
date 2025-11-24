@@ -65,9 +65,10 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Page<ProductDto> searchProducts(String keyword, Long categoryId,
+                                            Long sellerId,
                                             BigDecimal minPrice, BigDecimal maxPrice,
                                             Pageable pageable) {
-        return productRepository.searchProducts(keyword, categoryId, minPrice, maxPrice, pageable)
+        return productRepository.searchProducts(keyword, categoryId, sellerId, minPrice, maxPrice, pageable)
                 .map(this::toDto);
     }
 

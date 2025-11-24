@@ -22,13 +22,14 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<Page<ProductDto>> getProducts(
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long sellerId,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        if (keyword != null || minPrice != null || maxPrice != null) {
-            return ResponseEntity.ok(productService.searchProducts(keyword, categoryId, minPrice, maxPrice, pageable));
+        if (keyword != null || sellerId != null || minPrice != null || maxPrice != null) {
+            return ResponseEntity.ok(productService.searchProducts(keyword, categoryId, sellerId, minPrice, maxPrice, pageable));
         } else if (categoryId != null) {
             return ResponseEntity.ok(productService.getProductsByCategory(categoryId, pageable));
         }

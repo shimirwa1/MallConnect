@@ -138,30 +138,35 @@ const registerRules = {
 }
 
 const handleRegister = async () => {
-  await registerFormRef.value.validate(async (valid) => {
-    if (valid) {
-      loading.value = true
-      try {
-        const result = await authStore.register({
-          firstName: registerForm.firstName,
-          lastName: registerForm.lastName,
-          email: registerForm.email,
-          phone: registerForm.phone,
-          password: registerForm.password
-        })
-        if (result.success) {
-          ElMessage.success('Registration successful! Please login.')
-          router.push('/login')
-        } else {
-          ElMessage.error(result.message)
-        }
-      } catch (error) {
-        ElMessage.error('Registration failed. Please try again.')
-      } finally {
-        loading.value = false
-      }
+  if (!registerFormRef.value) return
+
+  try {
+    await registerFormRef.value.validate()
+  } catch {
+    return
+  }
+
+  loading.value = true
+  try {
+    const result = await authStore.register({
+      firstName: registerForm.firstName,
+      lastName: registerForm.lastName,
+      email: registerForm.email,
+      phone: registerForm.phone,
+      password: registerForm.password
+    })
+    if (result.success) {
+      ElMessage.success('Registration successful! Please login.')
+      router.push('/login')
+    } else {
+      ElMessage.error(result.message)
     }
-  })
+  } catch (error) {
+    console.error('Register error:', error)
+    ElMessage.error(error.response?.data?.message || 'Registration failed. Please try again.')
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

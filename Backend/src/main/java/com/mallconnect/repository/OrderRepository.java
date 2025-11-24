@@ -21,4 +21,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @org.springframework.data.jpa.repository.Query(
         "SELECT DISTINCT o FROM Order o JOIN o.items oi JOIN oi.product p WHERE p.seller.id = :sellerId")
     Page<Order> findOrdersBySellerId(@org.springframework.data.repository.query.Param("sellerId") Long sellerId, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT COUNT(DISTINCT o) FROM Order o JOIN o.items oi JOIN oi.product p WHERE p.seller.id = :sellerId")
+    long countBySellerId(@org.springframework.data.repository.query.Param("sellerId") Long sellerId);
+
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT DISTINCT o FROM Order o JOIN o.items oi JOIN oi.product p WHERE p.seller.id = :sellerId")
+    List<Order> findBySellerId(@org.springframework.data.repository.query.Param("sellerId") Long sellerId);
 }

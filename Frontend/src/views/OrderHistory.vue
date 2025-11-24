@@ -2,146 +2,189 @@
   <div class="orders-page">
     <h1 class="page-title">{{ $t('common.orders') }}</h1>
 
-    <!-- Tabs -->
-    <div class="order-tabs">
-      <button
-        v-for="tab in orderTabs"
-        :key="tab.id"
-        :class="['tab-btn', { active: activeTab === tab.id }]"
-        @click="activeTab = tab.id"
-      >
-        {{ tab.label }}
-        <span v-if="tab.count" class="tab-count">{{ tab.count }}</span>
-      </button>
+    <!-- Loading -->
+    <div v-if="loading" class="loading-container">
+      <el-skeleton :rows="6" animated />
     </div>
 
-    <!-- Empty State -->
-    <div v-if="filteredOrders.length === 0" class="empty-orders">
-      <el-icon :size="64" color="#c4c6cd"><receipt /></el-icon>
-      <h2>No orders found</h2>
-      <p>{{ activeTab === 'all' ? 'You haven\'t placed any orders yet.' : `No ${activeTab} orders.` }}</p>
-      <router-link to="/products">
-        <el-button type="primary" size="large">Start Shopping</el-button>
-      </router-link>
-    </div>
+    <template v-else>
+      <!-- Tabs -->
+      <div class="order-tabs">
+        <button
+          v-for="tab in orderTabs"
+          :key="tab.id"
+          :class="['tab-btn', { active: activeTab === tab.id }]"
+          @click="activeTab = tab.id"
+        >
+          {{ tab.label }}
+          <span v-if="tab.count !== null" class="tab-count">{{ tab.count }}</span>
+        </button>
+      </div>
 
-    <!-- Orders List -->
-    <div v-else class="orders-list">
-      <div v-for="order in filteredOrders" :key="order.id" class="order-card">
-        <!-- Order Header -->
-        <div class="order-header">
-          <div class="order-meta">
-            <div>
-              <span class="meta-label">Order ID</span>
-              <span class="meta-value">{{ order.id }}</span>
-            </div>
-            <div>
-              <span class="meta-label">Placed On</span>
-              <span class="meta-value">{{ order.date }}</span>
-            </div>
-            <div>
-              <span class="meta-label">Total</span>
-              <span class="meta-value price">${{ order.total.toFixed(2) }}</span>
-            </div>
-            <div>
-              <span class="meta-label">Items</span>
-              <span class="meta-value">{{ order.items.length }}</span>
-            </div>
-          </div>
-          <div class="order-status-area">
-            <span :class="['status-badge', order.status]">{{ order.status }}</span>
-            <button class="expand-btn" @click="toggleOrder(order.id)">
-              <el-icon :class="{ rotated: expandedOrders.includes(order.id) }"><arrow-down /></el-icon>
-            </button>
-          </div>
-        </div>
+      <!-- Empty State -->
+      <div v-if="filteredOrders.length === 0" class="empty-orders">
+        <el-icon :size="64" color="#c4c6cd"><receipt /></el-icon>
+        <h2>No orders found</h2>
+        <p>{{ activeTab === 'all' ? 'You haven\'t placed any orders yet.' : `No ${activeTab} orders.` }}</p>
+        <router-link to="/products">
+          <el-button type="primary" size="large">Start Shopping</el-button>
+        </router-link>
+      </div>
 
-        <!-- Tracking Progress -->
-        <div class="tracking-bar">
-          <div
-            v-for="(step, idx) in trackingSteps"
-            :key="idx"
-            :class="['track-step', { completed: order.trackingIdx >= idx, current: order.trackingIdx === idx }]"
-          >
-            <div class="step-dot">
-              <el-icon v-if="order.trackingIdx > idx"><check /></el-icon>
+      <!-- Orders List -->
+      <div v-else class="orders-list">
+        <div v-for="order in filteredOrders" :key="order.id" class="order-card">
+          <!-- Order Header -->
+          <div class="order-header">
+            <div class="order-meta">
+              <div>
+                <span class="meta-label">Order ID</span>
+                <span class="meta-value">{{ order.id }}</span>
+              </div>
+              <div>
+                <span class="meta-label">Placed On</span>
+                <span class="meta-value">{{ order.date }}</span>
+              </div>
+              <div>
+                <span class="meta-label">Total</span>
+                <span class="meta-value price">${{ order.total.toFixed(2) }}</span>
+              </div>
+              <div>
+                <span class="meta-label">Items</span>
+                <span class="meta-value">{{ order.items.reduce((sum, item) => sum + item.quantity, 0) }}</span>
+              </div>
             </div>
-            <span class="step-label">{{ step }}</span>
+            <div class="order-status-area">
+              <span :class="['status-badge', order.status]">{{ order.status }}</span>
+              <button class="expand-btn" @click="toggleOrder(order.id)">
+                <el-icon :class="{ rotated: expandedOrders.includes(order.id) }"><arrow-down /></el-icon>
+              </button>
+            </div>
           </div>
-        </div>
 
-        <!-- Expanded Items -->
-        <div v-if="expandedOrders.includes(order.id)" class="order-items">
-          <div v-for="item in order.items" :key="item.id" class="order-item">
-            <div class="item-image">
-              <img :src="item.image" :alt="item.name" />
+          <!-- Tracking Progress -->
+          <div v-if="order.trackingIdx >= 0" class="tracking-bar">
+            <div
+              v-for="(step, idx) in trackingSteps"
+              :key="idx"
+              :class="['track-step', { completed: order.trackingIdx >= idx, current: order.trackingIdx === idx }]"
+            >
+              <div class="step-dot">
+                <el-icon v-if="order.trackingIdx > idx"><check /></el-icon>
+              </div>
+              <span class="step-label">{{ step }}</span>
             </div>
-            <div class="item-info">
-              <h4>{{ item.name }}</h4>
-              <p>Qty: {{ item.quantity }} | {{ item.category }}</p>
-            </div>
-            <span class="item-price">${{ item.price.toFixed(2) }}</span>
           </div>
-          <div class="order-actions">
-            <el-button @click="viewOrderDetail(order)">View Details</el-button>
-            <el-button v-if="order.status === 'Pending' || order.status === 'Processing'" type="primary" plain>
-              Track Package
-            </el-button>
-            <el-button v-if="order.status === 'Pending'" type="danger" plain @click="cancelOrder(order)">
-              Cancel Order
-            </el-button>
+
+          <!-- Expanded Items -->
+          <div v-if="expandedOrders.includes(order.id)" class="order-items">
+            <div v-for="item in order.items" :key="item.id" class="order-item">
+              <div class="item-image">
+                <img :src="item.image" :alt="item.name" />
+              </div>
+              <div class="item-info">
+                <h4>{{ item.name }}</h4>
+                <p>Qty: {{ item.quantity }}</p>
+              </div>
+              <span class="item-price">${{ item.price.toFixed(2) }}</span>
+            </div>
+            <div class="order-actions">
+              <el-button @click="viewOrderDetail(order)">View Details</el-button>
+              <el-button v-if="order.status === 'PENDING' || order.status === 'CONFIRMED'" type="primary" plain>
+                Track Package
+              </el-button>
+              <el-button v-if="order.status === 'PENDING'" type="danger" plain @click="cancelOrder(order)">
+                Cancel Order
+              </el-button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { ordersAPI } from '@/services/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const activeTab = ref('all')
 const expandedOrders = ref([])
+const loading = ref(true)
 
 const orderTabs = [
   { id: 'all', label: 'All Orders', count: null },
-  { id: 'Pending', label: 'Pending', count: 2 },
-  { id: 'Processing', label: 'Processing', count: 1 },
-  { id: 'Shipped', label: 'Shipped', count: 1 },
-  { id: 'Delivered', label: 'Delivered', count: 3 },
-  { id: 'Cancelled', label: 'Cancelled', count: 0 }
+  { id: 'PENDING', label: 'Pending', count: null },
+  { id: 'CONFIRMED', label: 'Confirmed', count: null },
+  { id: 'SHIPPED', label: 'Shipped', count: null },
+  { id: 'DELIVERED', label: 'Delivered', count: null },
+  { id: 'CANCELLED', label: 'Cancelled', count: null }
 ]
 
-const trackingSteps = ['Placed', 'Confirmed', 'Processing', 'Shipped', 'Delivered']
+const trackingSteps = ['Placed', 'Confirmed', 'Shipped', 'Delivered']
+const statusToTrackingIdx = {
+  PENDING: 0,
+  CONFIRMED: 1,
+  SHIPPED: 2,
+  DELIVERED: 3,
+  CANCELLED: -1
+}
 
-const orders = ref([
-  {
-    id: '#ORD-2024-8831', date: 'May 12, 2024', total: 299.00, status: 'Shipped', trackingIdx: 3,
-    items: [{ id: 1, name: 'SonicFlow Headphones', quantity: 1, price: 299.00, category: 'Electronics', image: 'https://via.placeholder.com/80' }]
-  },
-  {
-    id: '#ORD-2024-8832', date: 'May 12, 2024', total: 569.00, status: 'Processing', trackingIdx: 2,
-    items: [
-      { id: 1, name: 'Elite Leather Briefcase', quantity: 1, price: 349.00, category: 'Fashion', image: 'https://via.placeholder.com/80' },
-      { id: 2, name: 'Ergonomic Mouse Pro', quantity: 2, price: 89.00, category: 'Electronics', image: 'https://via.placeholder.com/80' }
-    ]
-  },
-  {
-    id: '#ORD-2024-8815', date: 'May 8, 2024', total: 185.00, status: 'Delivered', trackingIdx: 4,
-    items: [{ id: 1, name: 'Aura Satchel Bag', quantity: 1, price: 185.00, category: 'Fashion', image: 'https://via.placeholder.com/80' }]
-  },
-  {
-    id: '#ORD-2024-8792', date: 'April 28, 2024', total: 520.00, status: 'Delivered', trackingIdx: 4,
-    items: [{ id: 1, name: 'Stellar Chronograph', quantity: 1, price: 520.00, category: 'Fashion', image: 'https://via.placeholder.com/80' }]
-  },
-  {
-    id: '#ORD-2024-8770', date: 'April 15, 2024', total: 107.00, status: 'Delivered', trackingIdx: 4,
-    items: [
-      { id: 1, name: 'Lumière Scented Candle', quantity: 2, price: 45.00, category: 'Home & Living', image: 'https://via.placeholder.com/80' }
-    ]
+const orders = ref([])
+
+const fetchOrders = async () => {
+  loading.value = true
+  try {
+    const response = await ordersAPI.getOrders({ page: 0, size: 50 })
+    const content = response.content || response
+    const list = Array.isArray(content) ? content : []
+
+    orders.value = list.map(order => ({
+      id: order.orderNumber || `#${order.id}`,
+      numericId: order.id,
+      date: order.createdAt
+        ? new Date(order.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })
+        : 'N/A',
+      total: Number(order.totalAmount || 0),
+      status: order.status || 'PENDING',
+      trackingIdx: statusToTrackingIdx[order.status] ?? 0,
+      items: (order.items || []).map(item => ({
+        id: item.id,
+        name: item.productName || 'Product',
+        quantity: Number(item.quantity || 1),
+        price: Number(item.price || 0),
+        image: item.productImageUrl || 'https://via.placeholder.com/80'
+      }))
+    }))
+
+    updateTabCounts()
+  } catch (err) {
+    console.error('Error fetching orders:', err)
+    ElMessage.error('Failed to load orders')
+    orders.value = []
+  } finally {
+    loading.value = false
   }
-])
+}
+
+const updateTabCounts = () => {
+  orderTabs.forEach(tab => {
+    if (tab.id === 'all') {
+      tab.count = orders.value.length
+    } else {
+      tab.count = orders.value.filter(o => o.status === tab.id).length
+    }
+  })
+}
+
+onMounted(() => {
+  fetchOrders()
+})
 
 const filteredOrders = computed(() => {
   if (activeTab.value === 'all') return orders.value
@@ -155,7 +198,7 @@ const toggleOrder = (id) => {
 }
 
 const viewOrderDetail = (order) => {
-  ElMessage.info(`Viewing details for ${order.id}`)
+  ElMessage.info(`Order ${order.id} — Status: ${order.status}`)
 }
 
 const cancelOrder = async (order) => {
@@ -165,10 +208,16 @@ const cancelOrder = async (order) => {
       'Cancel Order',
       { confirmButtonText: 'Yes, Cancel', cancelButtonText: 'No', type: 'warning' }
     )
-    order.status = 'Cancelled'
-    order.trackingIdx = 0
+    await ordersAPI.cancelOrder(order.numericId)
+    order.status = 'CANCELLED'
+    order.trackingIdx = -1
+    updateTabCounts()
     ElMessage.success('Order cancelled')
-  } catch {}
+  } catch (err) {
+    if (err !== 'cancel') {
+      ElMessage.error(err.response?.data?.message || 'Failed to cancel order')
+    }
+  }
 }
 </script>
 
@@ -184,6 +233,10 @@ const cancelOrder = async (order) => {
   font-weight: 700;
   color: #041627;
   margin: 0 0 32px 0;
+}
+
+.loading-container {
+  padding: 40px 0;
 }
 
 /* Tabs */
@@ -222,13 +275,13 @@ const cancelOrder = async (order) => {
 
 .tab-count {
   padding: 1px 8px;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 9999px;
   font-size: 12px;
 }
 
 .tab-btn.active .tab-count {
-  background: rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* Empty */
@@ -315,11 +368,11 @@ const cancelOrder = async (order) => {
   letter-spacing: 0.03em;
 }
 
-.status-badge.Pending { background: #fff3e0; color: #e65100; }
-.status-badge.Processing { background: #e3f2fd; color: #0058bc; }
-.status-badge.Shipped { background: #e8f5e9; color: #2e7d32; }
-.status-badge.Delivered { background: #e8f5e9; color: #1b5e20; }
-.status-badge.Cancelled { background: #ffebee; color: #ba1a1a; }
+.status-badge.PENDING { background: #fff3e0; color: #e65100; }
+.status-badge.CONFIRMED { background: #e3f2fd; color: #0058bc; }
+.status-badge.SHIPPED { background: #e8f5e9; color: #2e7d32; }
+.status-badge.DELIVERED { background: #e8f5e9; color: #1b5e20; }
+.status-badge.CANCELLED { background: #ffebee; color: #ba1a1a; }
 
 .expand-btn {
   width: 32px;

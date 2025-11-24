@@ -33,8 +33,8 @@ public class CartController {
     public ResponseEntity<CartDto> updateItemQuantity(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long itemId,
-            @RequestParam Integer quantity) {
-        return ResponseEntity.ok(cartService.updateItemQuantity(userDetails.getUsername(), itemId, quantity));
+            @RequestBody CartItemDto updateDto) {
+        return ResponseEntity.ok(cartService.updateItemQuantity(userDetails.getUsername(), itemId, updateDto.getQuantity()));
     }
 
     @DeleteMapping("/items/{itemId}")

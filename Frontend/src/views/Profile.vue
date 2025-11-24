@@ -180,24 +180,29 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { userAPI } from '@/services/api'
 import { ElMessage } from 'element-plus'
 
 const authStore = useAuthStore()
 const activeTab = ref('info')
 const showAddressForm = ref(false)
+const profileLoading = ref(false)
 
+// Initialize user data from auth store (populated at login)
 const user = reactive({
-  firstName: 'John',
-  lastName: 'Doe',
-  email: 'john.doe@example.com',
-  phone: '+1 (555) 000-0000'
+  firstName: authStore.user?.firstName || '',
+  lastName: authStore.user?.lastName || '',
+  email: authStore.user?.email || '',
+  phone: authStore.user?.phone || ''
 })
 
-const userInitials = computed(() =>
-  (user.firstName[0] + user.lastName[0]).toUpperCase()
-)
+const userInitials = computed(() => {
+  const first = user.firstName?.[0] || ''
+  const last = user.lastName?.[0] || ''
+  return (first + last).toUpperCase() || 'U'
+})
 
 const tabs = [
   { id: 'info', label: 'Personal Info', icon: 'User' },
@@ -206,11 +211,7 @@ const tabs = [
   { id: 'payments', label: 'Payments', icon: 'CreditCard' }
 ]
 
-const addresses = ref([
-  { id: 1, label: 'Home', fullName: 'John Doe', street: '123 Main Street, Apt 4B', city: 'New York', state: 'NY', zip: '10001', phone: '+1 (555) 000-0000', isDefault: true },
-  { id: 2, label: 'Work', fullName: 'John Doe', street: '456 Business Ave, Floor 12', city: 'New York', state: 'NY', zip: '10002', phone: '+1 (555) 111-1111', isDefault: false }
-])
-
+const addresses = ref([])
 const newAddress = reactive({
   label: 'Home', fullName: '', street: '', city: '', state: '', zip: '', phone: ''
 })
@@ -219,34 +220,102 @@ const passwordForm = reactive({
   current: '', new: '', confirm: ''
 })
 
-const paymentCards = ref([
-  { id: 1, brand: 'Visa', last4: '4242', expiry: '12/26' },
-  { id: 2, brand: 'Mastercard', last4: '5555', expiry: '08/25' }
-])
+const paymentCards = ref([])
 
-const saveProfile = () => {
-  ElMessage.success('Profile updated successfully!')
+// Fetch full profile from backend
+const fetchProfile = async () => {
+  profileLoading.value = true
+  try {
+    const data = await userAPI.getProfile()
+    if (data) {
+      user.firstName = data.firstName || user.firstName
+      user.lastName = data.lastName || user.lastName
+      user.email = data.email || user.email
+      user.phone = data.phone || user.phone
+    }
+  } catch (err) {
+    console.error('Failed to load profile:', err)
+  } finally {
+    profileLoading.value = false
+  }
 }
 
-const addAddress = () => {
-  addresses.value.push({
-    id: Date.now(),
-    ...newAddress,
-    isDefault: false
-  })
-  showAddressForm.value = false
-  ElMessage.success('Address added!')
-  Object.keys(newAddress).forEach(k => newAddress[k] = '')
+// Fetch addresses
+const fetchAddresses = async () => {
+  try {
+    const data = await userAPI.getAddresses()
+    if (Array.isArray(data)) {
+      addresses.value = data
+    }
+  } catch (err) {
+    console.error('Failed to load addresses:', err)
+  }
 }
 
-const changePassword = () => {
+const saveProfile = async () => {
+  try {
+    await userAPI.updateProfile({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone
+    })
+    // Update auth store so navbar etc. reflects changes
+    if (authStore.user) {
+      authStore.user.firstName = user.firstName
+      authStore.user.lastName = user.lastName
+      authStore.user.phone = user.phone
+      localStorage.setItem('user', JSON.stringify(authStore.user))
+    }
+    ElMessage.success('Profile updated successfully!')
+  } catch (err) {
+    ElMessage.error(err.response?.data?.message || 'Failed to update profile')
+  }
+}
+
+const addAddress = async () => {
+  try {
+    await userAPI.addAddress({
+      label: newAddress.label,
+      fullName: newAddress.fullName,
+      street: newAddress.street,
+      city: newAddress.city,
+      state: newAddress.state,
+      zip: newAddress.zip,
+      phone: newAddress.phone
+    })
+    showAddressForm.value = false
+    ElMessage.success('Address added!')
+    Object.keys(newAddress).forEach(k => newAddress[k] = '')
+    newAddress.label = 'Home'
+    fetchAddresses()
+  } catch (err) {
+    ElMessage.error(err.response?.data?.message || 'Failed to add address')
+  }
+}
+
+const changePassword = async () => {
   if (passwordForm.new !== passwordForm.confirm) {
     ElMessage.error('Passwords do not match')
     return
   }
-  ElMessage.success('Password changed successfully!')
-  passwordForm.current = passwordForm.new = passwordForm.confirm = ''
+  try {
+    await userAPI.changePassword({
+      currentPassword: passwordForm.current,
+      newPassword: passwordForm.new
+    })
+    ElMessage.success('Password changed successfully!')
+    passwordForm.current = ''
+    passwordForm.new = ''
+    passwordForm.confirm = ''
+  } catch (err) {
+    ElMessage.error(err.response?.data?.message || 'Failed to change password')
+  }
 }
+
+onMounted(() => {
+  fetchProfile()
+  fetchAddresses()
+})
 </script>
 
 <style scoped>

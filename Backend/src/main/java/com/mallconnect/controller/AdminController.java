@@ -100,6 +100,26 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
+    // --- Seller Management ---
+
+    @GetMapping("/sellers")
+    public ResponseEntity<Page<UserDto>> getAllSellers(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(adminService.getAllSellers(pageable));
+    }
+
+    @PutMapping("/sellers/{id}/approve")
+    public ResponseEntity<Void> approveSeller(@PathVariable Long id) {
+        adminService.approveSeller(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/sellers/{id}/reject")
+    public ResponseEntity<Void> rejectSeller(@PathVariable Long id) {
+        adminService.rejectSeller(id);
+        return ResponseEntity.ok().build();
+    }
+
     // --- Order Management ---
 
     @GetMapping("/orders")

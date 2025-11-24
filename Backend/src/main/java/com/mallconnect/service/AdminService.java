@@ -91,6 +91,27 @@ public class AdminService {
         categoryService.deleteCategory(id);
     }
 
+    // --- Seller Management ---
+
+    @Transactional(readOnly = true)
+    public Page<UserDto> getAllSellers(Pageable pageable) {
+        return userRepository.findByRole(Role.ROLE_SELLER, pageable).map(this::toUserDto);
+    }
+
+    public void approveSeller(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found: " + id));
+        user.setEnabled(true);
+        userRepository.save(user);
+    }
+
+    public void rejectSeller(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found: " + id));
+        user.setEnabled(false);
+        userRepository.save(user);
+    }
+
     // --- Order Management ---
 
     @Transactional(readOnly = true)
@@ -125,6 +146,8 @@ public class AdminService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .role(user.getRole().name())
+                .enabled(user.isEnabled())
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 }

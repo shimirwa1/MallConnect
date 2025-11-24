@@ -26,8 +26,8 @@
       </nav>
       <div class="sidebar-user">
         <div class="user-info">
-          <div class="user-avatar"><img src="https://via.placeholder.com/40" /></div>
-          <div class="user-details"><strong>Alex Chen</strong><span>Premium Seller</span></div>
+          <div class="user-avatar">{{ sellerInitials }}</div>
+          <div class="user-details"><strong>{{ sellerName }}</strong><span>{{ sellerTier }}</span></div>
         </div>
       </div>
     </aside>
@@ -67,13 +67,13 @@
           <el-table-column prop="sold" label="SOLD" width="100" />
           <el-table-column label="STATUS" width="120">
             <template #default="{ row }">
-              <el-switch v-model="row.active" active-text="Active" inactive-text="Draft" />
+              <el-switch v-model="row.active" active-text="Active" inactive-text="Draft" @change="handleToggleActive(row)" />
             </template>
           </el-table-column>
           <el-table-column label="ACTIONS" width="150" fixed="right">
             <template #default="{ row }">
-              <el-button text type="primary" size="small">Edit</el-button>
-              <el-button text type="danger" size="small">Delete</el-button>
+              <el-button text type="primary" size="small" @click="handleEdit(row)">Edit</el-button>
+              <el-button text type="danger" size="small" @click="handleDelete(row)">Delete</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -89,11 +89,13 @@
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="Category" required>
-              <el-select v-model="newProduct.category" size="large" style="width: 100%">
-                <el-option label="Electronics" value="Electronics" />
-                <el-option label="Fashion" value="Fashion" />
-                <el-option label="Home & Living" value="Home & Living" />
-                <el-option label="Beauty" value="Beauty" />
+              <el-select v-model="newProduct.categoryId" size="large" style="width: 100%">
+                <el-option
+                  v-for="cat in categories"
+                  :key="cat.id"
+                  :label="cat.name"
+                  :value="cat.id"
+                />
               </el-select>
             </el-form-item>
           </el-col>
@@ -110,8 +112,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="SKU">
-              <el-input v-model="newProduct.sku" size="large" />
+            <el-form-item label="Image URL">
+              <el-input v-model="newProduct.imageUrl" size="large" placeholder="https://..." />
             </el-form-item>
           </el-col>
         </el-row>
@@ -128,43 +130,148 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { sellerAPI, productsAPI } from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+
+const sellerName = computed(() => {
+  const user = authStore.user
+  if (user) return `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Seller'
+  return 'Seller'
+})
+
+const sellerTier = computed(() => {
+  return authStore.user?.role || 'Seller'
+})
+
+const sellerInitials = computed(() => {
+  const user = authStore.user
+  if (user) {
+    return `${(user.firstName?.charAt(0) || '')}${(user.lastName?.charAt(0) || '')}`.toUpperCase() || 'SE'
+  }
+  return 'SE'
+})
 
 const showAddDialog = ref(false)
 const selectedProducts = ref([])
+const loading = ref(true)
 
 const newProduct = reactive({
-  name: '', category: '', price: 0, stock: 0, sku: '', description: ''
+  name: '', categoryId: '', price: 0, stock: 0, description: '', imageUrl: ''
 })
 
-const products = ref([
-  { id: 1, name: 'Wireless Headphones X1', sku: 'WH-X1-001', category: 'Electronics', price: 299.00, stock: 45, sold: 230, active: true, image: 'https://via.placeholder.com/48' },
-  { id: 2, name: 'Mechanical Keyboard RGB', sku: 'MK-RGB-002', category: 'Electronics', price: 159.50, stock: 12, sold: 89, active: true, image: 'https://via.placeholder.com/48' },
-  { id: 3, name: 'Ergonomic Mouse Pro', sku: 'EM-PRO-003', category: 'Electronics', price: 89.00, stock: 78, sold: 412, active: true, image: 'https://via.placeholder.com/48' },
-  { id: 4, name: 'USB-C Hub 7-in-1', sku: 'USB-H7-004', category: 'Electronics', price: 49.00, stock: 0, sold: 156, active: false, image: 'https://via.placeholder.com/48' }
-])
+const categories = ref([])
+
+const products = ref([])
+
+const fetchProducts = async () => {
+  loading.value = true
+  try {
+    const data = await sellerAPI.getProducts({ page: 0, size: 50 })
+    const list = data.content || data || []
+    products.value = list.map(p => ({
+      id: p.id,
+      name: p.name,
+      sku: p.id ? `SKU-${p.id.toString().padStart(4, '0')}` : 'N/A',
+      category: p.categoryName || 'Uncategorized',
+      price: Number(p.price || 0),
+      stock: p.stock || 0,
+      sold: 0,
+      active: p.active !== undefined ? p.active : p.stock > 0,
+      image: p.imageUrl || 'https://via.placeholder.com/48'
+    }))
+  } catch (err) {
+    console.error('Error fetching seller products:', err)
+    ElMessage.error('Failed to load products')
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchCategories = async () => {
+  try {
+    const data = await productsAPI.getCategories()
+    categories.value = data || []
+  } catch (err) {
+    console.error('Error fetching categories:', err)
+  }
+}
 
 const handleSelection = (val) => {
   selectedProducts.value = val
 }
 
-const addProduct = () => {
-  if (!newProduct.name || !newProduct.category) {
+const handleEdit = (product) => {
+  newProduct.name = product.name
+  newProduct.price = product.price
+  newProduct.stock = product.stock
+  newProduct.description = product.description || ''
+  newProduct.imageUrl = product.image || ''
+  newProduct.categoryId = categories.value.find(c => c.name === product.category)?.id || ''
+  showAddDialog.value = true
+}
+
+const addProduct = async () => {
+  if (!newProduct.name || !newProduct.categoryId) {
     ElMessage.warning('Please fill required fields')
     return
   }
-  products.value.unshift({
-    id: Date.now(),
-    ...newProduct,
-    sold: 0,
-    active: true,
-    image: 'https://via.placeholder.com/48'
-  })
-  showAddDialog.value = false
-  ElMessage.success('Product added!')
-  Object.keys(newProduct).forEach(k => newProduct[k] = k === 'price' || k === 'stock' ? 0 : '')
+  try {
+    await sellerAPI.createProduct({
+      name: newProduct.name,
+      categoryId: Number(newProduct.categoryId),
+      price: Number(newProduct.price),
+      stock: Number(newProduct.stock),
+      description: newProduct.description,
+      imageUrl: newProduct.imageUrl || null
+    })
+    showAddDialog.value = false
+    ElMessage.success('Product added!')
+    // Reset form
+    Object.keys(newProduct).forEach(k => {
+      newProduct[k] = (k === 'price' || k === 'stock' || k === 'categoryId') ? 0 : ''
+    })
+    fetchProducts()
+  } catch (err) {
+    ElMessage.error('Failed to add product: ' + (err.response?.data?.message || err.message))
+  }
 }
+
+const handleDelete = async (product) => {
+  try {
+    await ElMessageBox.confirm(`Delete "${product.name}"?`, 'Confirm Delete', {
+      type: 'warning',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel'
+    })
+    await sellerAPI.deleteProduct(product.id)
+    ElMessage.success('Product deleted')
+    fetchProducts()
+  } catch (err) {
+    if (err !== 'cancel') {
+      ElMessage.error('Failed to delete product')
+    }
+  }
+}
+
+const handleToggleActive = async (product) => {
+  try {
+    await sellerAPI.updateProduct(product.id, { active: product.active })
+    ElMessage.success(product.active ? 'Product activated' : 'Product deactivated')
+    fetchProducts()
+  } catch (err) {
+    ElMessage.error('Failed to update product status')
+    product.active = !product.active // revert
+  }
+}
+
+onMounted(() => {
+  fetchProducts()
+  fetchCategories()
+})
 </script>
 
 <style scoped>
@@ -179,8 +286,7 @@ const addProduct = () => {
 .nav-item.active { background: #0058bc; color: white; font-weight: 600; }
 .sidebar-user { padding: 16px; border-top: 1px solid #eceef1; display: flex; align-items: center; }
 .user-info { display: flex; align-items: center; gap: 12px; }
-.user-avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #d2e4fb; }
-.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; background: #d2e4fb; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #0058bc; }
 .user-details strong { display: block; font-size: 14px; color: #191c1e; }
 .user-details span { font-size: 11px; color: #74777d; }
 .main-area { margin-left: 260px; flex: 1; display: flex; flex-direction: column; }

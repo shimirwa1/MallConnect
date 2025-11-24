@@ -45,11 +45,11 @@
           <span class="product-category">{{ product.category }}</span>
           <h1 class="product-name">{{ product.name }}</h1>
 
-          <div class="rating-row">
+          <div v-if="product.rating > 0" class="rating-row">
             <el-rate v-model="product.rating" disabled size="small" />
             <span class="rating-value">{{ product.rating }}</span>
-            <span class="review-count">({{ product.reviewCount }} reviews)</span>
-            <span class="sold-count">{{ product.soldCount }} sold</span>
+            <span v-if="product.reviewCount" class="review-count">({{ product.reviewCount }} reviews)</span>
+            <span v-if="product.soldCount" class="sold-count">{{ product.soldCount }} sold</span>
           </div>
 
           <div class="price-section">
@@ -130,8 +130,8 @@
             <el-icon><shop /></el-icon>
           </div>
           <div>
-            <h3>{{ product.seller?.name || 'MallConnect Seller' }}</h3>
-            <p>{{ product.seller?.description || 'Trusted seller on MallConnect' }}</p>
+            <h3>{{ product.seller?.name || 'Seller' }}</h3>
+            <p>{{ product.seller?.description || '' }}</p>
           </div>
         </div>
         <el-button size="large" @click="visitStore">
@@ -165,12 +165,12 @@ const product = ref({
   price: 0,
   originalPrice: null,
   discount: null,
-  rating: 4.5,
+  rating: 0,
   reviewCount: 0,
   soldCount: 0,
   stock: 0,
   description: '',
-  image: 'https://via.placeholder.com/600x600',
+  image: '',
   thumbnails: [],
   seller: { id: null, name: '', description: '' },
   reviews: []
@@ -183,27 +183,27 @@ const fetchProduct = async () => {
     const id = route.params.id
     const response = await productsAPI.getProduct(id)
 
-    const imageUrl = response.imageUrl || 'https://via.placeholder.com/600x600'
+    const imageUrl = response.imageUrl || ''
     product.value = {
       id: response.id,
       name: response.name,
       category: response.categoryName || 'Uncategorized',
-      price: response.price || 0,
-      originalPrice: null,
-      discount: null,
-      rating: 4.5,
-      reviewCount: 0,
-      soldCount: 0,
+      price: Number(response.price || 0),
+      originalPrice: response.originalPrice || null,
+      discount: response.discount || null,
+      rating: response.rating || 0,
+      reviewCount: response.reviewCount || 0,
+      soldCount: response.soldCount || 0,
       stock: response.stock || 0,
       description: response.description || '',
       image: imageUrl,
-      thumbnails: [imageUrl, imageUrl, imageUrl, imageUrl],
+      thumbnails: imageUrl ? [imageUrl] : [],
       seller: {
         id: response.sellerId,
-        name: response.sellerName || 'MallConnect Seller',
-        description: 'Trusted seller on MallConnect'
+        name: response.sellerName || '',
+        description: response.sellerDescription || ''
       },
-      reviews: []
+      reviews: response.reviews || []
     }
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load product. Please try again.'
@@ -246,8 +246,11 @@ const handleBuyNow = () => {
 }
 
 const visitStore = () => {
+  const sellerId = product.value.seller?.id
   const sellerName = product.value.seller?.name || ''
-  if (sellerName) {
+  if (sellerId) {
+    router.push({ path: '/products', query: { sellerId: sellerId, seller: sellerName } })
+  } else if (sellerName) {
     router.push({ path: '/products', query: { seller: sellerName } })
   }
 }

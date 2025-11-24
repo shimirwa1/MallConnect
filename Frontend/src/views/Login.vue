@@ -86,24 +86,33 @@ const loginRules = {
 }
 
 const handleLogin = async () => {
-  await loginFormRef.value.validate(async (valid) => {
-    if (valid) {
-      loading.value = true
-      try {
-        const result = await authStore.login(loginForm)
-        if (result.success) {
-          ElMessage.success('Login successful!')
-          router.push('/')
-        } else {
-          ElMessage.error(result.message)
-        }
-      } catch (error) {
-        ElMessage.error('Login failed')
-      } finally {
-        loading.value = false
-      }
+  if (!loginFormRef.value) return
+
+  try {
+    await loginFormRef.value.validate()
+  } catch {
+    // Validation failed — Element Plus will show inline errors
+    return
+  }
+
+  loading.value = true
+  try {
+    const result = await authStore.login({
+      email: loginForm.email,
+      password: loginForm.password
+    })
+    if (result.success) {
+      ElMessage.success('Login successful!')
+      router.push('/')
+    } else {
+      ElMessage.error(result.message)
     }
-  })
+  } catch (error) {
+    console.error('Login error:', error)
+    ElMessage.error(error.response?.data?.message || 'Login failed. Please try again.')
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

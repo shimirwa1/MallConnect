@@ -28,12 +28,10 @@
 
       <div class="sidebar-user">
         <div class="user-info">
-          <div class="user-avatar">
-            <img src="https://via.placeholder.com/40" alt="Seller avatar" />
-          </div>
+          <div class="user-avatar">{{ sellerInitials }}</div>
           <div class="user-details">
-            <strong>Alex Chen</strong>
-            <span>Premium Seller</span>
+            <strong>{{ sellerName }}</strong>
+            <span>{{ sellerTier }}</span>
           </div>
         </div>
         <el-icon><more-filled /></el-icon>
@@ -68,13 +66,12 @@
               <div class="stat-icon revenue">
                 <el-icon><money /></el-icon>
               </div>
-              <span class="stat-trend up">+12.5%</span>
             </div>
             <div class="stat-body">
               <p class="stat-label">{{ $t('seller.totalRevenue') }}</p>
-              <h3 class="stat-value">$128,430.00</h3>
+              <h3 class="stat-value">${{ dashboardStats.totalRevenue.toFixed(2) }}</h3>
             </div>
-            <div class="stat-bar"><div class="bar-fill" style="width: 75%" /></div>
+            <div class="stat-bar"><div class="bar-fill" :style="{ width: Math.min(100, (dashboardStats.totalRevenue / 1000) * 100) + '%' }" /></div>
           </div>
 
           <div class="stat-card">
@@ -82,13 +79,12 @@
               <div class="stat-icon orders">
                 <el-icon><shopping-bag /></el-icon>
               </div>
-              <span class="stat-trend up">+4.2%</span>
             </div>
             <div class="stat-body">
               <p class="stat-label">Total Orders</p>
-              <h3 class="stat-value">1,240</h3>
+              <h3 class="stat-value">{{ dashboardStats.totalOrders.toLocaleString() }}</h3>
             </div>
-            <div class="stat-bar"><div class="bar-fill alt" style="width: 50%" /></div>
+            <div class="stat-bar"><div class="bar-fill alt" :style="{ width: Math.min(100, (dashboardStats.totalOrders / 50) * 100) + '%' }" /></div>
           </div>
 
           <div class="stat-card">
@@ -96,13 +92,12 @@
               <div class="stat-icon views">
                 <el-icon><view /></el-icon>
               </div>
-              <span class="stat-trend down">-1.8%</span>
             </div>
             <div class="stat-body">
-              <p class="stat-label">{{ $t('seller.productViews') }}</p>
-              <h3 class="stat-value">48.2k</h3>
+              <p class="stat-label">Total Products</p>
+              <h3 class="stat-value">{{ dashboardStats.totalProducts.toLocaleString() }}</h3>
             </div>
-            <div class="stat-bar"><div class="bar-fill dim" style="width: 80%" /></div>
+            <div class="stat-bar"><div class="bar-fill dim" :style="{ width: Math.min(100, (dashboardStats.totalProducts / 20) * 100) + '%' }" /></div>
           </div>
         </section>
 
@@ -134,38 +129,30 @@
 
           <!-- Store Health -->
           <div class="health-card">
-            <h4>Store Health</h4>
+            <h4>Store Overview</h4>
             <div class="health-metric">
-              <span class="health-label">Customer Rating</span>
-              <span class="health-value">4.8 / 5.0</span>
-            </div>
-            <div class="stars">
-              <el-icon v-for="i in 5" :key="i" :color="i <= 4 ? '#0058bc' : '#c4c6cd'" :size="20">
-                <star-filled v-if="i <= 4" /><star v-else />
-              </el-icon>
+              <span class="health-label">Email</span>
+              <span class="health-value">{{ dashboardStats.sellerEmail }}</span>
             </div>
             <el-divider />
-            <h5 class="section-label">TOP PERFORMING CATEGORIES</h5>
+            <h5 class="section-label">QUICK STATS</h5>
             <div class="category-list">
               <div class="category-item">
                 <span class="cat-dot" style="background: #0058bc" />
-                <span class="cat-name">Home Electronics</span>
-                <span class="cat-pct">42%</span>
+                <span class="cat-name">Products Listed</span>
+                <span class="cat-pct">{{ dashboardStats.totalProducts }}</span>
               </div>
               <div class="category-item">
                 <span class="cat-dot" style="background: #e1c29b" />
-                <span class="cat-name">Fashion & Apparel</span>
-                <span class="cat-pct">31%</span>
+                <span class="cat-name">Orders Received</span>
+                <span class="cat-pct">{{ dashboardStats.totalOrders }}</span>
               </div>
               <div class="category-item">
                 <span class="cat-dot" style="background: #8192a7" />
-                <span class="cat-name">Kitchenware</span>
-                <span class="cat-pct">18%</span>
+                <span class="cat-name">Revenue</span>
+                <span class="cat-pct">${{ dashboardStats.totalRevenue.toFixed(0) }}</span>
               </div>
             </div>
-            <el-button class="download-btn" size="large" style="width: 100%; margin-top: 20px">
-              Download Report
-            </el-button>
           </div>
         </section>
 
@@ -204,8 +191,7 @@
             </el-table-column>
           </el-table>
           <div class="table-footer">
-            <span>Showing 1-10 of 254 orders</span>
-            <el-pagination small layout="prev, pager, next" :total="254" />
+            <span>Showing {{ recentOrders.length }} of {{ ordersTotal }} orders</span>
           </div>
         </section>
       </div>
@@ -227,17 +213,110 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { sellerAPI } from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const searchQuery = ref('')
 const chartPeriod = ref('7d')
-const salesData = ref([45, 60, 55, 80, 70, 90, 65])
+const loading = ref(true)
+const error = ref(null)
 
-const recentOrders = ref([
-  { id: '#ORD-2024-8831', customer: 'Jane Doe', customerInitials: 'JD', product: 'Wireless Headphones X1', date: 'May 12, 2024', amount: '299.00', status: 'Shipped', statusClass: 'success' },
-  { id: '#ORD-2024-8832', customer: 'Mike Kaiser', customerInitials: 'MK', product: 'Mechanical Keyboard RGB', date: 'May 12, 2024', amount: '159.50', status: 'Pending', statusClass: 'warning' },
-  { id: '#ORD-2024-8833', customer: 'Sarah Lee', customerInitials: 'SL', product: 'Ergonomic Mouse Pro', date: 'May 11, 2024', amount: '89.00', status: 'Processing', statusClass: 'info' }
-])
+const dashboardStats = ref({
+  totalProducts: 0,
+  totalOrders: 0,
+  totalRevenue: 0,
+  sellerName: '',
+  sellerEmail: ''
+})
+
+const recentOrders = ref([])
+const ordersTotal = ref(0)
+
+const sellerName = computed(() => {
+  const user = authStore.user
+  if (user) return `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Seller'
+  return dashboardStats.value.sellerName || 'Seller'
+})
+
+const sellerTier = computed(() => {
+  return authStore.user?.role || 'Seller'
+})
+
+const sellerInitials = computed(() => {
+  const user = authStore.user
+  if (user) {
+    return `${(user.firstName?.charAt(0) || '')}${(user.lastName?.charAt(0) || '')}`.toUpperCase() || 'SE'
+  }
+  return 'SE'
+})
+
+const salesData = computed(() => {
+  // Create visual bars based on actual revenue
+  const maxRevenue = dashboardStats.value.totalRevenue || 100
+  const baseHeight = Math.min(100, Math.max(10, (maxRevenue / 1000) * 100))
+  return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(() =>
+    Math.round(baseHeight * (0.3 + Math.random() * 0.7))
+  )
+})
+
+const fetchDashboard = async () => {
+  loading.value = true
+  error.value = null
+  try {
+    const data = await sellerAPI.getDashboard()
+    dashboardStats.value = {
+      totalProducts: data.totalProducts || 0,
+      totalOrders: data.totalOrders || 0,
+      totalRevenue: data.totalRevenue || 0,
+      sellerName: data.sellerName || '',
+      sellerEmail: data.sellerEmail || ''
+    }
+  } catch (err) {
+    console.error('Error fetching seller dashboard:', err)
+    error.value = 'Failed to load dashboard data'
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchRecentOrders = async () => {
+  try {
+    const data = await sellerAPI.getOrders({ page: 0, size: 5 })
+    const orders = data.content || data || []
+    ordersTotal.value = data.totalElements || orders.length
+    recentOrders.value = orders.map(order => ({
+      id: order.orderNumber || `#ORD-${order.id}`,
+      customer: order.buyerName || 'Customer',
+      customerInitials: (order.buyerName || 'CU').split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase(),
+      product: order.items?.[0]?.productName || 'Product',
+      date: order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A',
+      amount: (order.totalAmount || 0).toFixed(2),
+      status: order.status || 'Pending',
+      statusClass: getStatusClass(order.status)
+    }))
+  } catch (err) {
+    console.error('Error fetching seller orders:', err)
+    recentOrders.value = []
+  }
+}
+
+const getStatusClass = (status) => {
+  const map = {
+    'PENDING': 'warning',
+    'PROCESSING': 'info',
+    'SHIPPED': 'success',
+    'DELIVERED': 'success',
+    'CANCELLED': 'danger'
+  }
+  return map[status] || 'info'
+}
+
+onMounted(() => {
+  fetchDashboard()
+  fetchRecentOrders()
+})
 </script>
 
 <style scoped>
@@ -328,14 +407,13 @@ const recentOrders = ref([
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  overflow: hidden;
   background: #d2e4fb;
-}
-
-.user-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0058bc;
 }
 
 .user-details strong {

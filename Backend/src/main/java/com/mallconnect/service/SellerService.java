@@ -59,9 +59,20 @@ public class SellerService {
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
 
         long totalProducts = productRepository.findBySellerId(user.getId()).size();
+        long totalOrders = orderRepository.countBySellerId(user.getId());
+
+        // Calculate total revenue from completed orders
+        var sellerOrders = orderRepository.findBySellerId(user.getId());
+        double totalRevenue = sellerOrders.stream()
+                .filter(o -> o.getStatus() != Order.OrderStatus.CANCELLED)
+                .map(Order::getTotalAmount)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add)
+                .doubleValue();
 
         Map<String, Object> dashboard = new HashMap<>();
         dashboard.put("totalProducts", totalProducts);
+        dashboard.put("totalOrders", totalOrders);
+        dashboard.put("totalRevenue", totalRevenue);
         dashboard.put("sellerName", user.getFirstName() + " " + user.getLastName());
         dashboard.put("sellerEmail", user.getEmail());
         return dashboard;

@@ -34,12 +34,10 @@
           <span>Settings</span>
         </a>
         <div class="admin-info">
-          <div class="admin-avatar">
-            <img src="https://via.placeholder.com/40" alt="Admin" />
-          </div>
+          <div class="admin-avatar">{{ adminInitials }}</div>
           <div>
-            <strong>Alex Sterling</strong>
-            <span>Super Admin</span>
+            <strong>{{ adminName }}</strong>
+            <span>{{ adminRole }}</span>
           </div>
         </div>
       </div>
@@ -70,12 +68,9 @@
             </div>
             <p class="metric-label">{{ $t('admin.totalUsers') }}</p>
             <div class="metric-value-row">
-              <span class="metric-value">12,842</span>
-              <span class="metric-trend up">
-                <el-icon><trending-up /></el-icon> 12%
-              </span>
+              <span class="metric-value">{{ dashboardStats.totalUsers.toLocaleString() }}</span>
             </div>
-            <p class="metric-sub">Active this month</p>
+            <p class="metric-sub">{{ dashboardStats.totalBuyers.toLocaleString() }} buyers · {{ dashboardStats.totalSellers.toLocaleString() }} sellers</p>
           </div>
 
           <div class="metric-card highlight">
@@ -84,12 +79,9 @@
             </div>
             <p class="metric-label">{{ $t('admin.pendingSellers') }}</p>
             <div class="metric-value-row">
-              <span class="metric-value">48</span>
-              <span class="metric-trend urgent">
-                <el-icon><warning-filled /></el-icon> 8 urgent
-              </span>
+              <span class="metric-value">{{ sellerApplications.filter(s => s.statusClass === 'urgent').length }}</span>
             </div>
-            <p class="metric-sub">Requires review</p>
+            <p class="metric-sub">{{ sellerApplications.length }} total sellers</p>
           </div>
 
           <div class="metric-card">
@@ -98,12 +90,9 @@
             </div>
             <p class="metric-label">{{ $t('admin.platformRevenue') }}</p>
             <div class="metric-value-row">
-              <span class="metric-value">$2.4M</span>
-              <span class="metric-trend up">
-                <el-icon><trending-up /></el-icon> 18.4%
-              </span>
+              <span class="metric-value">{{ dashboardStats.totalOrders.toLocaleString() }}</span>
             </div>
-            <p class="metric-sub">Trailing 30 days</p>
+            <p class="metric-sub">Total orders placed</p>
           </div>
         </section>
 
@@ -194,10 +183,10 @@
               </template>
             </el-table-column>
             <el-table-column label="ACTIONS" fixed="right" width="200">
-              <template #default>
+              <template #default="{ row }">
                 <div class="action-btns">
-                  <el-button size="small" type="danger" plain>Reject</el-button>
-                  <el-button size="small" type="primary">Approve</el-button>
+                  <el-button size="small" type="danger" plain @click="handleRejectSeller(row)">Reject</el-button>
+                  <el-button size="small" type="primary" @click="handleApproveSeller(row)">Approve</el-button>
                 </div>
               </template>
             </el-table-column>
@@ -223,17 +212,121 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { adminAPI } from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
+import { ElMessage } from 'element-plus'
 
+const authStore = useAuthStore()
 const growthPeriod = ref('14d')
-const userGrowthData = ref([45,60,55,80,70,90,65,85,95,75,88,100,92,98])
+const loading = ref(true)
+const error = ref(null)
 
-const sellerApplications = ref([
-  { initials: 'AL', storeName: 'Aura Luxe', email: 'aura.support@lux.com', category: 'Fashion & Apparel', submissionDate: 'Oct 24, 2023', status: 'New Application', statusClass: 'new' },
-  { initials: 'GT', storeName: 'GearTech Solutions', email: 'admin@geartech.io', category: 'Electronics', submissionDate: 'Oct 23, 2023', status: 'Urgent Review', statusClass: 'urgent' },
-  { initials: 'HO', storeName: 'Home Oasis', email: 'orders@homeoasis.net', category: 'Home & Living', submissionDate: 'Oct 23, 2023', status: 'New Application', statusClass: 'new' },
-  { initials: 'KB', storeName: 'Kiddo Barn', email: 'contact@kiddobarn.shop', category: 'Toys & Kids', submissionDate: 'Oct 22, 2023', status: 'In Progress', statusClass: 'progress' }
-])
+// Dashboard stats from backend
+const dashboardStats = ref({
+  totalUsers: 0,
+  totalProducts: 0,
+  totalOrders: 0,
+  totalBuyers: 0,
+  totalSellers: 0
+})
+
+// Seller applications from backend
+const sellerApplications = ref([])
+
+const adminName = computed(() => {
+  const user = authStore.user
+  if (user) return `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Admin'
+  return 'Admin'
+})
+
+const adminRole = computed(() => {
+  return authStore.user?.role || 'Administrator'
+})
+
+const adminInitials = computed(() => {
+  const user = authStore.user
+  if (user) {
+    return `${(user.firstName?.charAt(0) || '')}${(user.lastName?.charAt(0) || '')}`.toUpperCase() || 'AD'
+  }
+  return 'AD'
+})
+
+const fetchDashboard = async () => {
+  loading.value = true
+  error.value = null
+  try {
+    const data = await adminAPI.getDashboard()
+    dashboardStats.value = {
+      totalUsers: data.totalUsers || 0,
+      totalProducts: data.totalProducts || 0,
+      totalOrders: data.totalOrders || 0,
+      totalBuyers: data.totalBuyers || 0,
+      totalSellers: data.totalSellers || 0
+    }
+  } catch (err) {
+    console.error('Error fetching admin dashboard:', err)
+    error.value = 'Failed to load dashboard data'
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchSellerApplications = async () => {
+  try {
+    // Fetch sellers (pending sellers are those with SELLER role)
+    // If the approve/reject endpoints existed, we'd use those; for now show all sellers
+    const data = await adminAPI.getSellers({ page: 0, size: 10 })
+    const sellers = data.content || data || []
+    sellerApplications.value = sellers.map(seller => ({
+      id: seller.id,
+      initials: (seller.firstName?.charAt(0) || '') + (seller.lastName?.charAt(0) || ''),
+      storeName: `${seller.firstName || ''} ${seller.lastName || ''}`.trim() || 'Unknown',
+      email: seller.email || '',
+      category: 'General',
+      submissionDate: seller.createdAt ? new Date(seller.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A',
+      status: seller.enabled ? 'Approved' : 'Pending',
+      statusClass: seller.enabled ? 'new' : 'urgent'
+    }))
+  } catch (err) {
+    console.error('Error fetching seller applications:', err)
+    // Fallback to empty - don't show hardcoded data
+    sellerApplications.value = []
+  }
+}
+
+const userGrowthData = computed(() => {
+  // Show relative proportions based on actual user count
+  const total = dashboardStats.value.totalUsers || 1
+  // Simple visualization: show the total scaled to a percentage bar
+  const baseHeight = Math.min(100, Math.max(10, (total / 100) * 100))
+  return Array(14).fill(baseHeight).map((h, i) => Math.round(h * (0.5 + Math.random() * 0.5)))
+})
+
+const handleApproveSeller = async (seller) => {
+  try {
+    await adminAPI.approveSeller(seller.id)
+    ElMessage.success(`Approved ${seller.storeName}`)
+    fetchSellerApplications()
+  } catch (err) {
+    ElMessage.error('Failed to approve seller')
+  }
+}
+
+const handleRejectSeller = async (seller) => {
+  try {
+    await adminAPI.rejectSeller(seller.id)
+    ElMessage.success(`Rejected ${seller.storeName}`)
+    fetchSellerApplications()
+  } catch (err) {
+    ElMessage.error('Failed to reject seller')
+  }
+}
+
+onMounted(() => {
+  fetchDashboard()
+  fetchSellerApplications()
+})
 </script>
 
 <style scoped>
@@ -321,14 +414,14 @@ const sellerApplications = ref([
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  overflow: hidden;
   border: 2px solid #0058bc;
-}
-
-.admin-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #adc6ff;
+  background: #1a2b3c;
 }
 
 .admin-info strong {

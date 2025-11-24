@@ -182,6 +182,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { ordersAPI, cartAPI } from '@/services/api'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -219,13 +220,42 @@ const handlePlaceOrder = async () => {
     ElMessage.warning('Please fill in all required shipping fields')
     return
   }
+
+  if (authStore.cartItems.length === 0) {
+    ElMessage.warning('Your cart is empty')
+    return
+  }
+
   placing.value = true
-  // Simulate order placement
-  await new Promise(resolve => setTimeout(resolve, 1500))
-  authStore.clearCart()
-  ElMessage.success('Order placed successfully! (Simulation)')
-  router.push('/orders')
-  placing.value = false
+  try {
+    const shippingAddress = [
+      shipping.value.firstName + ' ' + shipping.value.lastName,
+      shipping.value.address,
+      shipping.value.apt,
+      shipping.value.city + ', ' + shipping.value.state + ' ' + shipping.value.zip
+    ].filter(Boolean).join(', ')
+
+    await ordersAPI.createOrder({
+      shippingAddress: shippingAddress,
+      contactPhone: shipping.value.phone
+    })
+
+    // Clear local cart
+    authStore.clearCart()
+
+    // Clear backend cart
+    try {
+      await cartAPI.clearCart()
+    } catch {}
+
+    ElMessage.success('Order placed successfully!')
+    router.push('/orders')
+  } catch (err) {
+    console.error('Error placing order:', err)
+    ElMessage.error(err.response?.data?.message || 'Failed to place order. Please try again.')
+  } finally {
+    placing.value = false
+  }
 }
 </script>
 

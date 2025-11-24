@@ -40,7 +40,16 @@
     </div>
 
     <!-- Active Filters -->
-    <div v-if="selectedCategoryId || searchQuery" class="active-filters">
+    <div v-if="selectedCategoryId || searchQuery || sellerId" class="active-filters">
+      <el-tag
+        v-if="sellerId"
+        closable
+        size="large"
+        type="warning"
+        @close="clearSellerFilter"
+      >
+        Store: {{ route.query.seller || 'Seller' }}
+      </el-tag>
       <el-tag
         v-if="selectedCategoryId"
         closable
@@ -124,16 +133,18 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { productsAPI } from '@/services/api'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 
 const searchQuery = ref('')
 const selectedCategoryId = ref(null)
+const sellerId = ref(null)
 const sortBy = ref('createdAt,desc')
 const currentPage = ref(1)
 const pageSize = ref(12)
@@ -162,6 +173,9 @@ const fetchProducts = async () => {
     if (selectedCategoryId.value) {
       params.categoryId = selectedCategoryId.value
     }
+    if (sellerId.value) {
+      params.sellerId = sellerId.value
+    }
 
     const response = await productsAPI.getProducts(params)
     products.value = response.content || response
@@ -186,9 +200,16 @@ const fetchCategories = async () => {
 }
 
 onMounted(() => {
-  // If navigated from "Visit Store", pre-fill the search with seller name
-  if (route.query.seller) {
+  // If navigated from "Visit Store", filter by sellerId
+  if (route.query.sellerId) {
+    sellerId.value = Number(route.query.sellerId)
+  } else if (route.query.seller) {
+    // Only pre-fill search if no sellerId (backward compat)
     searchQuery.value = route.query.seller
+  }
+  // Apply category filter from query param
+  if (route.query.categoryId) {
+    selectedCategoryId.value = Number(route.query.categoryId)
   }
   fetchCategories()
   fetchProducts()
@@ -212,6 +233,13 @@ watch(sortBy, () => {
   currentPage.value = 1
   fetchProducts()
 })
+
+const clearSellerFilter = () => {
+  sellerId.value = null
+  currentPage.value = 1
+  router.replace({ path: '/products', query: {} })
+  fetchProducts()
+}
 
 const handleSearch = () => {
   currentPage.value = 1

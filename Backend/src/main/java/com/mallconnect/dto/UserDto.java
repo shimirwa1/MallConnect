@@ -17,4 +17,6 @@ public class UserDto {
     private String email;
     private String phone;
     private String role;
+    private Boolean enabled;
+    private java.time.LocalDateTime createdAt;
 }

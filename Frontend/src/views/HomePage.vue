@@ -12,7 +12,7 @@
           <el-button type="primary" size="large" class="hero-button" @click="$router.push('/products')">
             {{ $t('home.exploreDeals') }}
           </el-button>
-          <el-button size="large" class="hero-button-outline">
+          <el-button size="large" class="hero-button-outline" @click="$router.push('/events')">
             View Events
           </el-button>
         </div>
@@ -31,32 +31,22 @@
         </el-button>
       </div>
       
-      <div class="category-grid">
-        <div class="category-card category-fashion">
-          <div class="category-content">
-            <h3>Fashion</h3>
-            <p>Designer labels & runway essentials</p>
-          </div>
+      <div v-if="categoriesLoading" class="category-grid">
+        <div v-for="n in 4" :key="n" class="category-card category-skeleton">
+          <el-skeleton animated :rows="2" />
         </div>
-        
-        <div class="category-card category-electronics">
+      </div>
+      <div v-else class="category-grid">
+        <div
+          v-for="cat in homeCategories"
+          :key="cat.id"
+          class="category-card"
+          :class="getCategoryClass(cat.name)"
+          @click="$router.push({ path: '/products', query: { categoryId: cat.id } })"
+        >
           <div class="category-content">
-            <h3>Electronics</h3>
-            <p>The latest in tech</p>
-          </div>
-        </div>
-        
-        <div class="category-card category-beauty">
-          <div class="category-content">
-            <h3>Beauty</h3>
-            <p>Indulge in self-care</p>
-          </div>
-        </div>
-        
-        <div class="category-card category-home">
-          <div class="category-content">
-            <h3>Home & Living</h3>
-            <p>Curated spaces for modern life</p>
+            <h3>{{ cat.name }}</h3>
+            <p>{{ cat.description || 'Explore our collection' }}</p>
           </div>
         </div>
       </div>
@@ -159,6 +149,8 @@ const authStore = useAuthStore()
 const email = ref('')
 const featuredProducts = ref([])
 const loading = ref(false)
+const homeCategories = ref([])
+const categoriesLoading = ref(true)
 
 const fetchFeaturedProducts = async () => {
   loading.value = true
@@ -171,6 +163,33 @@ const fetchFeaturedProducts = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const fetchCategories = async () => {
+  categoriesLoading.value = true
+  try {
+    const data = await productsAPI.getCategories()
+    homeCategories.value = (data || []).slice(0, 4)
+  } catch (err) {
+    console.error('Error fetching categories:', err)
+    homeCategories.value = []
+  } finally {
+    categoriesLoading.value = false
+  }
+}
+
+const getCategoryClass = (name) => {
+  const map = {
+    'Fashion': 'category-fashion',
+    'Electronics': 'category-electronics',
+    'Beauty': 'category-beauty',
+    'Home & Living': 'category-home',
+    'Home': 'category-home',
+    'Sports': 'category-fashion',
+    'Books': 'category-electronics',
+    'Toys': 'category-beauty'
+  }
+  return map[name] || 'category-fashion'
 }
 
 const addToCart = (product) => {
@@ -187,6 +206,7 @@ const addToCart = (product) => {
 
 onMounted(() => {
   fetchFeaturedProducts()
+  fetchCategories()
 })
 </script>
 
@@ -313,20 +333,27 @@ onMounted(() => {
 
 .category-fashion {
   grid-column: span 2;
-  background-image: url('https://via.placeholder.com/800x500');
+  background: linear-gradient(135deg, #1a2b3c, #2c3e50);
 }
 
 .category-electronics {
-  background-image: url('https://via.placeholder.com/400x250');
+  background: linear-gradient(135deg, #0d2137, #1a3a5c);
 }
 
 .category-beauty {
-  background-image: url('https://via.placeholder.com/400x250');
+  background: linear-gradient(135deg, #2c1a3c, #4a2c5e);
 }
 
 .category-home {
   grid-column: span 2;
-  background-image: url('https://via.placeholder.com/800x250');
+  background: linear-gradient(135deg, #1a3c2c, #2c5e4a);
+}
+
+.category-skeleton {
+  background: #f2f4f7;
+  padding: 24px;
+  display: flex;
+  align-items: flex-end;
 }
 
 .category-content {

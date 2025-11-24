@@ -10,6 +10,9 @@ const api = axios.create({
   }
 })
 
+// Track if a redirect is already in progress to prevent loops
+let isRedirecting = false
+
 // Request interceptor to add token
 api.interceptors.request.use(
   (config) => {
@@ -28,10 +31,19 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status
+    if ((status === 401 || status === 403) && !isRedirecting) {
+      const path = window.location.pathname
+      // Don't redirect if already on login or register page
+      if (path === '/login' || path === '/register') {
+        return Promise.reject(error)
+      }
+
+      isRedirecting = true
       const authStore = useAuthStore()
       authStore.logout()
-      window.location.href = '/login'
+      // Use replace to avoid back-button getting stuck in a loop
+      window.location.replace('/login')
     }
     return Promise.reject(error)
   }
@@ -87,7 +99,10 @@ export const userAPI = {
 export const sellerAPI = {
   getDashboard: () => api.get('/seller/dashboard'),
   getOrders: (params) => api.get('/seller/orders', { params }),
-  getProducts: (params) => api.get('/seller/products', { params })
+  getProducts: (params) => api.get('/seller/products', { params }),
+  createProduct: (productData) => api.post('/seller/products', productData),
+  updateProduct: (id, productData) => api.put(`/seller/products/${id}`, productData),
+  deleteProduct: (id) => api.delete(`/seller/products/${id}`)
 }
 
 // Admin API
