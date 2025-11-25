@@ -2,7 +2,7 @@
   <div class="register-page">
     <div class="register-container">
       <div class="register-header">
-        <h1>MallConnect</h1>
+        <h1>{{ $t('nav.brand') }}</h1>
         <p>{{ $t('auth.registerTitle') }}</p>
       </div>
 
@@ -16,22 +16,22 @@
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item :label="$t('auth.firstName')" prop="firstName">
-              <el-input v-model="registerForm.firstName" size="large" placeholder="John" />
+              <el-input v-model="registerForm.firstName" size="large" :placeholder="$t('auth.placeholderFirstName')" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item :label="$t('auth.lastName')" prop="lastName">
-              <el-input v-model="registerForm.lastName" size="large" placeholder="Doe" />
+              <el-input v-model="registerForm.lastName" size="large" :placeholder="$t('auth.placeholderLastName')" />
             </el-form-item>
           </el-col>
         </el-row>
 
         <el-form-item :label="$t('auth.email')" prop="email">
-          <el-input v-model="registerForm.email" size="large" placeholder="you@example.com" />
+          <el-input v-model="registerForm.email" size="large" :placeholder="$t('auth.placeholderEmail')" />
         </el-form-item>
 
-        <el-form-item label="Phone" prop="phone">
-          <el-input v-model="registerForm.phone" size="large" placeholder="+1 (555) 000-0000" />
+        <el-form-item :label="$t('auth.phone')" prop="phone">
+          <el-input v-model="registerForm.phone" size="large" :placeholder="$t('auth.placeholderPhone')" />
         </el-form-item>
 
         <el-form-item :label="$t('auth.password')" prop="password">
@@ -40,7 +40,7 @@
             type="password"
             size="large"
             show-password
-            placeholder="Min. 8 characters"
+            :placeholder="$t('auth.placeholderPasswordMin')"
           />
         </el-form-item>
 
@@ -50,13 +50,13 @@
             type="password"
             size="large"
             show-password
-            placeholder="Re-enter password"
+            :placeholder="$t('auth.placeholderConfirmPassword')"
           />
         </el-form-item>
 
         <el-form-item prop="agreeTerms">
           <el-checkbox v-model="registerForm.agreeTerms">
-            I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#" class="terms-link">Privacy Policy</a>
+            {{ $t('auth.agreeTerms') }}<a href="#" class="terms-link">{{ $t('auth.termsOfService') }}</a>{{ $t('auth.and') }}<a href="#" class="terms-link">{{ $t('auth.privacyPolicy') }}</a>
           </el-checkbox>
         </el-form-item>
 

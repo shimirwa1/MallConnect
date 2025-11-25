@@ -15,9 +15,9 @@
     <!-- Error State -->
     <div v-else-if="error" class="error-container">
       <el-icon :size="48" color="#ba1a1a"><warning-filled /></el-icon>
-      <h2>Product Not Found</h2>
+      <h2>{{ $t('product.productNotFound') }}</h2>
       <p>{{ error }}</p>
-      <el-button type="primary" @click="$router.push('/products')">Back to Products</el-button>
+      <el-button type="primary" @click="$router.push('/products')">{{ $t('product.backToProducts') }}</el-button>
     </div>
 
     <!-- Product Content -->
@@ -48,14 +48,14 @@
           <div v-if="product.rating > 0" class="rating-row">
             <el-rate v-model="product.rating" disabled size="small" />
             <span class="rating-value">{{ product.rating }}</span>
-            <span v-if="product.reviewCount" class="review-count">({{ product.reviewCount }} reviews)</span>
-            <span v-if="product.soldCount" class="sold-count">{{ product.soldCount }} sold</span>
+            <span v-if="product.reviewCount" class="review-count">({{ $t('product.reviewCount', { count: product.reviewCount }) }})</span>
+            <span v-if="product.soldCount" class="sold-count">{{ $t('product.soldCount', { count: product.soldCount }) }}</span>
           </div>
 
           <div class="price-section">
             <span class="current-price">${{ product.price.toFixed(2) }}</span>
             <span v-if="product.originalPrice" class="original-price">${{ product.originalPrice.toFixed(2) }}</span>
-            <span v-if="product.discount" class="discount-badge">-{{ product.discount }}% OFF</span>
+            <span v-if="product.discount" class="discount-badge">-{{ $t('product.discount', { percent: product.discount }) }}</span>
           </div>
 
           <p class="product-description">{{ product.description }}</p>
@@ -70,7 +70,7 @@
               size="large"
             />
             <span class="stock-info" :class="{ 'low-stock': product.stock <= 5 }">
-              {{ product.stock > 0 ? `${product.stock} in stock` : 'Out of stock' }}
+              {{ product.stock > 0 ? $t('product.inStockCount', { count: product.stock }) : $t('product.outOfStock') }}
             </span>
           </div>
 
@@ -92,7 +92,7 @@
               :disabled="!product.stock"
               @click="handleBuyNow"
             >
-              Buy Now
+              {{ $t('product.buyNow') }}
             </el-button>
           </div>
 
@@ -101,22 +101,22 @@
             <div class="info-card">
               <el-icon><truck /></el-icon>
               <div>
-                <strong>Free Shipping</strong>
-                <span>On orders over $99</span>
+                <strong>{{ $t('product.freeShipping') }}</strong>
+                <span>{{ $t('product.freeShippingDesc') }}</span>
               </div>
             </div>
             <div class="info-card">
               <el-icon><refresh /></el-icon>
               <div>
-                <strong>30-Day Returns</strong>
-                <span>Hassle-free returns</span>
+                <strong>{{ $t('product.returns30') }}</strong>
+                <span>{{ $t('product.returnsDesc') }}</span>
               </div>
             </div>
             <div class="info-card">
               <el-icon><shield /></el-icon>
               <div>
-                <strong>Secure Payment</strong>
-                <span>Encrypted checkout</span>
+                <strong>{{ $t('product.securePayment') }}</strong>
+                <span>{{ $t('product.securePaymentDesc') }}</span>
               </div>
             </div>
           </div>
@@ -130,12 +130,12 @@
             <el-icon><shop /></el-icon>
           </div>
           <div>
-            <h3>{{ product.seller?.name || 'Seller' }}</h3>
+            <h3>{{ product.seller?.name || $t('common.seller') }}</h3>
             <p>{{ product.seller?.description || '' }}</p>
           </div>
         </div>
         <el-button size="large" @click="visitStore">
-          Visit Store
+          {{ $t('product.visitStore') }}
         </el-button>
       </div>
     </template>

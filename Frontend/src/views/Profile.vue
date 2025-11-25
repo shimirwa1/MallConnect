@@ -30,7 +30,7 @@
       <div class="profile-content">
         <!-- Personal Info Tab -->
         <div v-if="activeTab === 'info'" class="content-card">
-          <h2>Personal Information</h2>
+          <h2>{{ $t('profile.personalInformation') }}</h2>
           <el-form :model="user" label-position="top" class="profile-form">
             <el-row :gutter="16">
               <el-col :span="12">
@@ -44,14 +44,14 @@
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-form-item label="Email">
+            <el-form-item :label="$t('profile.email')">
               <el-input v-model="user.email" size="large" disabled />
             </el-form-item>
-            <el-form-item label="Phone">
+            <el-form-item :label="$t('profile.phone')">
               <el-input v-model="user.phone" size="large" />
             </el-form-item>
             <el-button type="primary" size="large" @click="saveProfile">
-              Save Changes
+              {{ $t('profile.saveChanges') }}
             </el-button>
           </el-form>
         </div>
@@ -59,103 +59,103 @@
         <!-- Addresses Tab -->
         <div v-if="activeTab === 'addresses'" class="content-card">
           <div class="card-header">
-            <h2>Saved Addresses</h2>
+            <h2>{{ $t('profile.savedAddresses') }}</h2>
             <el-button type="primary" @click="showAddressForm = true">
-              <el-icon><plus /></el-icon> Add Address
+              <el-icon><plus /></el-icon> {{ $t('profile.addAddress') }}
             </el-button>
           </div>
 
           <div class="address-grid">
             <div v-for="addr in addresses" :key="addr.id" class="address-card">
-              <div v-if="addr.isDefault" class="default-badge">Default</div>
+              <div v-if="addr.isDefault" class="default-badge">{{ $t('profile.default') }}</div>
               <h4>{{ addr.label }}</h4>
               <p>{{ addr.fullName }}</p>
               <p>{{ addr.street }}</p>
               <p>{{ addr.city }}, {{ addr.state }} {{ addr.zip }}</p>
               <p>{{ addr.phone }}</p>
               <div class="address-actions">
-                <el-button text size="small" type="primary">Edit</el-button>
-                <el-button text size="small" type="danger">Delete</el-button>
+                <el-button text size="small" type="primary">{{ $t('common.edit') }}</el-button>
+                <el-button text size="small" type="danger">{{ $t('common.delete') }}</el-button>
               </div>
             </div>
 
             <!-- Add Address Card -->
             <div class="address-card add-card" @click="showAddressForm = true">
               <el-icon :size="32" color="#c4c6cd"><plus /></el-icon>
-              <span>Add New Address</span>
+              <span>{{ $t('profile.addNewAddress') }}</span>
             </div>
           </div>
 
           <!-- Address Form Dialog -->
-          <el-dialog v-model="showAddressForm" title="Add New Address" width="500px">
+          <el-dialog v-model="showAddressForm" :title="$t('profile.addNewAddress')" width="500px">
             <el-form :model="newAddress" label-position="top">
-              <el-form-item label="Address Label">
+              <el-form-item :label="$t('profile.addressLabel')">
                 <el-select v-model="newAddress.label" size="large" style="width: 100%">
-                  <el-option label="Home" value="Home" />
-                  <el-option label="Work" value="Work" />
-                  <el-option label="Other" value="Other" />
+                  <el-option :label="$t('profile.home')" value="Home" />
+                  <el-option :label="$t('profile.work')" value="Work" />
+                  <el-option :label="$t('profile.other')" value="Other" />
                 </el-select>
               </el-form-item>
-              <el-form-item label="Full Name">
+              <el-form-item :label="$t('profile.fullName')">
                 <el-input v-model="newAddress.fullName" size="large" />
               </el-form-item>
-              <el-form-item label="Street Address">
+              <el-form-item :label="$t('profile.streetAddress')">
                 <el-input v-model="newAddress.street" size="large" />
               </el-form-item>
               <el-row :gutter="12">
                 <el-col :span="12">
-                  <el-form-item label="City">
+                  <el-form-item :label="$t('profile.city')">
                     <el-input v-model="newAddress.city" size="large" />
                   </el-form-item>
                 </el-col>
                 <el-col :span="12">
-                  <el-form-item label="State">
+                  <el-form-item :label="$t('profile.state')">
                     <el-input v-model="newAddress.state" size="large" />
                   </el-form-item>
                 </el-col>
               </el-row>
               <el-row :gutter="12">
                 <el-col :span="12">
-                  <el-form-item label="ZIP Code">
+                  <el-form-item :label="$t('profile.zipCode')">
                     <el-input v-model="newAddress.zip" size="large" />
                   </el-form-item>
                 </el-col>
                 <el-col :span="12">
-                  <el-form-item label="Phone">
+                  <el-form-item :label="$t('profile.phone')">
                     <el-input v-model="newAddress.phone" size="large" />
                   </el-form-item>
                 </el-col>
               </el-row>
             </el-form>
             <template #footer>
-              <el-button @click="showAddressForm = false">Cancel</el-button>
-              <el-button type="primary" @click="addAddress">Save Address</el-button>
+              <el-button @click="showAddressForm = false">{{ $t('profile.cancel') }}</el-button>
+              <el-button type="primary" @click="addAddress">{{ $t('profile.saveAddress') }}</el-button>
             </template>
           </el-dialog>
         </div>
 
         <!-- Security Tab -->
         <div v-if="activeTab === 'security'" class="content-card">
-          <h2>Change Password</h2>
+          <h2>{{ $t('profile.changePassword') }}</h2>
           <el-form :model="passwordForm" label-position="top" class="profile-form">
-            <el-form-item label="Current Password">
+            <el-form-item :label="$t('profile.currentPassword')">
               <el-input v-model="passwordForm.current" type="password" size="large" show-password />
             </el-form-item>
-            <el-form-item label="New Password">
+            <el-form-item :label="$t('profile.newPassword')">
               <el-input v-model="passwordForm.new" type="password" size="large" show-password />
             </el-form-item>
-            <el-form-item label="Confirm New Password">
+            <el-form-item :label="$t('profile.confirmNewPassword')">
               <el-input v-model="passwordForm.confirm" type="password" size="large" show-password />
             </el-form-item>
             <el-button type="primary" size="large" @click="changePassword">
-              Update Password
+              {{ $t('profile.updatePassword') }}
             </el-button>
           </el-form>
         </div>
 
         <!-- Payment Methods Tab -->
         <div v-if="activeTab === 'payments'" class="content-card">
-          <h2>Payment Methods</h2>
+          <h2>{{ $t('profile.paymentMethods') }}</h2>
           <div class="payment-list">
             <div v-for="card in paymentCards" :key="card.id" class="payment-card-item">
               <div class="card-icon">
@@ -163,13 +163,13 @@
               </div>
               <div class="card-details">
                 <strong>{{ card.brand }} •••• {{ card.last4 }}</strong>
-                <span>Expires {{ card.expiry }}</span>
+                <span>{{ $t('profile.expires', { expiry: card.expiry }) }}</span>
               </div>
-              <el-button text type="danger" size="small">Remove</el-button>
+              <el-button text type="danger" size="small">{{ $t('common.remove') }}</el-button>
             </div>
             <div class="add-payment-btn">
               <el-button size="large">
-                <el-icon><plus /></el-icon> Add Payment Method
+                <el-icon><plus /></el-icon> {{ $t('profile.addPaymentMethod') }}
               </el-button>
             </div>
           </div>
@@ -204,12 +204,16 @@ const userInitials = computed(() => {
   return (first + last).toUpperCase() || 'U'
 })
 
-const tabs = [
-  { id: 'info', label: 'Personal Info', icon: 'User' },
-  { id: 'addresses', label: 'Addresses', icon: 'Location' },
-  { id: 'security', label: 'Security', icon: 'Lock' },
-  { id: 'payments', label: 'Payments', icon: 'CreditCard' }
-]
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
+const tabs = computed(() => [
+  { id: 'info', label: t('profile.personalInfo'), icon: 'User' },
+  { id: 'addresses', label: t('profile.addresses'), icon: 'Location' },
+  { id: 'security', label: t('profile.security'), icon: 'Lock' },
+  { id: 'payments', label: t('profile.payments'), icon: 'CreditCard' }
+])
 
 const addresses = ref([])
 const newAddress = reactive({

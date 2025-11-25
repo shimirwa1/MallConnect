@@ -3,26 +3,26 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-brand">
-        <h1>MallConnect</h1>
-        <p class="sidebar-badge">SELLER CENTER</p>
+        <h1>{{ $t('nav.brand') }}</h1>
+        <p class="sidebar-badge">{{ $t('seller.sellerCenter') }}</p>
       </div>
 
       <nav class="sidebar-nav">
         <router-link to="/seller/dashboard" class="nav-item active">
           <el-icon><dashboard /></el-icon>
-          <span>Dashboard</span>
+          <span>{{ $t('seller.dashboard') }}</span>
         </router-link>
         <router-link to="/seller/products" class="nav-item">
           <el-icon><inventory-2 /></el-icon>
-          <span>Products</span>
+          <span>{{ $t('seller.products') }}</span>
         </router-link>
         <router-link to="/seller/orders" class="nav-item">
           <el-icon><shopping-cart /></el-icon>
-          <span>Orders</span>
+          <span>{{ $t('seller.orders') }}</span>
         </router-link>
         <router-link to="/seller/settings" class="nav-item">
           <el-icon><setting /></el-icon>
-          <span>Settings</span>
+          <span>{{ $t('seller.settings') }}</span>
         </router-link>
       </nav>
 
@@ -42,11 +42,11 @@
     <div class="main-area">
       <!-- Top Bar -->
       <header class="top-bar">
-        <h2>Dashboard Overview</h2>
+        <h2>{{ $t('seller.dashboardOverview') }}</h2>
         <div class="top-actions">
           <el-input
             v-model="searchQuery"
-            placeholder="Search orders, products..."
+            :placeholder="$t('seller.searchPlaceholder')"
             prefix-icon="Search"
             class="search-input"
           />
@@ -81,7 +81,7 @@
               </div>
             </div>
             <div class="stat-body">
-              <p class="stat-label">Total Orders</p>
+              <p class="stat-label">{{ $t('seller.totalOrders') }}</p>
               <h3 class="stat-value">{{ dashboardStats.totalOrders.toLocaleString() }}</h3>
             </div>
             <div class="stat-bar"><div class="bar-fill alt" :style="{ width: Math.min(100, (dashboardStats.totalOrders / 50) * 100) + '%' }" /></div>
@@ -94,7 +94,7 @@
               </div>
             </div>
             <div class="stat-body">
-              <p class="stat-label">Total Products</p>
+              <p class="stat-label">{{ $t('seller.totalProducts') }}</p>
               <h3 class="stat-value">{{ dashboardStats.totalProducts.toLocaleString() }}</h3>
             </div>
             <div class="stat-bar"><div class="bar-fill dim" :style="{ width: Math.min(100, (dashboardStats.totalProducts / 20) * 100) + '%' }" /></div>
@@ -107,12 +107,12 @@
           <div class="chart-card">
             <div class="chart-header">
               <div>
-                <h4>Sales Trend</h4>
-                <p>Weekly performance analysis</p>
+                <h4>{{ $t('seller.salesTrend') }}</h4>
+                <p>{{ $t('seller.salesTrendDesc') }}</p>
               </div>
               <el-select v-model="chartPeriod" size="small" style="width: 140px">
-                <el-option label="Last 7 Days" value="7d" />
-                <el-option label="Last 30 Days" value="30d" />
+                <el-option :label="$t('seller.last7Days')" value="7d" />
+                <el-option :label="$t('seller.last30Days')" value="30d" />
               </el-select>
             </div>
             <div class="chart-area">
@@ -129,27 +129,27 @@
 
           <!-- Store Health -->
           <div class="health-card">
-            <h4>Store Overview</h4>
+            <h4>{{ $t('seller.storeOverview') }}</h4>
             <div class="health-metric">
-              <span class="health-label">Email</span>
+              <span class="health-label">{{ $t('common.email') }}</span>
               <span class="health-value">{{ dashboardStats.sellerEmail }}</span>
             </div>
             <el-divider />
-            <h5 class="section-label">QUICK STATS</h5>
+            <h5 class="section-label">{{ $t('seller.quickStats') }}</h5>
             <div class="category-list">
               <div class="category-item">
                 <span class="cat-dot" style="background: #0058bc" />
-                <span class="cat-name">Products Listed</span>
+                <span class="cat-name">{{ $t('seller.productsListed') }}</span>
                 <span class="cat-pct">{{ dashboardStats.totalProducts }}</span>
               </div>
               <div class="category-item">
                 <span class="cat-dot" style="background: #e1c29b" />
-                <span class="cat-name">Orders Received</span>
+                <span class="cat-name">{{ $t('seller.ordersReceived') }}</span>
                 <span class="cat-pct">{{ dashboardStats.totalOrders }}</span>
               </div>
               <div class="category-item">
                 <span class="cat-dot" style="background: #8192a7" />
-                <span class="cat-name">Revenue</span>
+                <span class="cat-name">{{ $t('seller.revenue') }}</span>
                 <span class="cat-pct">${{ dashboardStats.totalRevenue.toFixed(0) }}</span>
               </div>
             </div>
@@ -159,12 +159,12 @@
         <!-- Recent Orders Table -->
         <section class="table-card">
           <div class="table-header">
-            <h4>Recent Orders</h4>
-            <el-button text type="primary">View All Orders</el-button>
+            <h4>{{ $t('seller.recentOrders') }}</h4>
+            <el-button text type="primary">{{ $t('seller.viewAllOrders') }}</el-button>
           </div>
           <el-table :data="recentOrders" stripe style="width: 100%">
-            <el-table-column prop="id" label="ORDER ID" width="180" />
-            <el-table-column label="CUSTOMER" width="200">
+            <el-table-column prop="id" :label="$t('seller.orderId')" width="180" />
+            <el-table-column :label="$t('seller.customer')" width="200">
               <template #default="{ row }">
                 <div class="customer-cell">
                   <div class="customer-avatar">{{ row.customerInitials }}</div>
@@ -172,9 +172,9 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="product" label="PRODUCT" />
-            <el-table-column prop="date" label="DATE" width="140" />
-            <el-table-column prop="amount" label="AMOUNT" width="120" sortable>
+            <el-table-column prop="product" :label="$t('seller.product')" />
+            <el-table-column prop="date" :label="$t('seller.date')" width="140" />
+            <el-table-column prop="amount" :label="$t('seller.amount')" width="120" sortable>
               <template #default="{ row }">
                 <strong>${{ row.amount }}</strong>
               </template>

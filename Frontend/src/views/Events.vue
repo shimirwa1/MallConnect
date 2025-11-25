@@ -1,13 +1,13 @@
 <template>
   <div class="events-page">
     <div class="page-header">
-      <h1 class="page-title">Mall Events</h1>
-      <p class="page-subtitle">Discover exclusive sales, seasonal promotions, and special happenings</p>
+      <h1 class="page-title">{{ $t('events.title') }}</h1>
+      <p class="page-subtitle">{{ $t('events.subtitle') }}</p>
     </div>
 
     <!-- Current Events -->
     <section v-if="!loading" class="events-section">
-      <h2 class="section-title">Happening Now</h2>
+      <h2 class="section-title">{{ $t('events.happeningNow') }}</h2>
       <div class="events-grid">
         <div v-for="event in currentEvents" :key="event.id" class="event-card" @click="$router.push('/products')">
           <div class="event-banner" :class="event.style">
@@ -17,7 +17,7 @@
             <span class="event-badge">{{ event.badge }}</span>
             <h3>{{ event.title }}</h3>
             <p>{{ event.description }}</p>
-            <span class="event-cta">Explore Deals <el-icon><arrow-right /></el-icon></span>
+            <span class="event-cta">{{ $t('events.exploreDeals') }} <el-icon><arrow-right /></el-icon></span>
           </div>
         </div>
       </div>
@@ -26,9 +26,9 @@
     <!-- Featured Products for Events -->
     <section v-if="!loading" class="products-section">
       <div class="section-header">
-        <h2 class="section-title">Event Highlights</h2>
+        <h2 class="section-title">{{ $t('events.eventHighlights') }}</h2>
         <el-button text type="primary" @click="$router.push('/products')">
-          View All <el-icon><arrow-right /></el-icon>
+          {{ $t('events.viewAll') }} <el-icon><arrow-right /></el-icon>
         </el-button>
       </div>
       <div class="products-grid">
@@ -44,7 +44,7 @@
             <img :src="product.imageUrl || 'https://via.placeholder.com/400x400'" :alt="product.name" />
           </div>
           <div class="product-info">
-            <p class="product-category">{{ product.categoryName || 'General' }}</p>
+            <p class="product-category">{{ product.categoryName || $t('common.general') }}</p>
             <h4 class="product-name">{{ product.name }}</h4>
             <span class="price">${{ (product.price || 0).toFixed(2) }}</span>
           </div>
@@ -60,47 +60,50 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { productsAPI } from '@/services/api'
 import { Discount, Present, Timer, TrophyBase } from '@element-plus/icons-vue'
+
+const { t } = useI18n()
 
 const loading = ref(true)
 const eventProducts = ref([])
 
-const currentEvents = [
+const currentEvents = computed(() => [
   {
     id: 1,
-    title: 'Summer Clearance',
-    description: 'Up to 50% off on seasonal favorites. Limited time only.',
+    title: t('events.summerClearance'),
+    description: t('events.summerClearanceDesc'),
     icon: Discount,
-    badge: 'SALE',
+    badge: t('events.badgeSale'),
     style: 'sale'
   },
   {
     id: 2,
-    title: 'New Arrivals Showcase',
-    description: 'Be the first to shop the latest collections from top brands.',
+    title: t('events.newArrivalsShowcase'),
+    description: t('events.newArrivalsShowcaseDesc'),
     icon: TrophyBase,
-    badge: 'NEW',
+    badge: t('events.badgeNew'),
     style: 'new'
   },
   {
     id: 3,
-    title: 'Flash Deals',
-    description: 'Lightning deals updated daily. Grab them before they\'re gone.',
+    title: t('events.flashDeals'),
+    description: t('events.flashDealsDesc'),
     icon: Timer,
-    badge: 'HOT',
+    badge: t('events.badgeHot'),
     style: 'hot'
   },
   {
     id: 4,
-    title: 'Member Appreciation Week',
-    description: 'Exclusive rewards and early access for our loyal members.',
+    title: t('events.memberAppreciation'),
+    description: t('events.memberAppreciationDesc'),
     icon: Present,
-    badge: 'EXCLUSIVE',
+    badge: t('events.badgeExclusive'),
     style: 'exclusive'
   }
-]
+])
 
 onMounted(async () => {
   try {

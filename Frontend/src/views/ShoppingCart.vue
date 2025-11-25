@@ -12,7 +12,7 @@
     <div v-if="authStore.cartItems.length === 0" class="empty-cart">
       <el-icon :size="80" color="#c4c6cd"><shopping-bag /></el-icon>
       <h2>{{ $t('cart.emptyCart') }}</h2>
-      <p>Looks like you haven't added anything to your cart yet.</p>
+      <p>{{ $t('cart.emptyCartMessage') }}</p>
       <router-link to="/products">
         <el-button type="primary" size="large">{{ $t('cart.startShopping') }}</el-button>
       </router-link>
@@ -28,7 +28,7 @@
           <div class="item-details">
             <div class="item-info">
               <h3 class="item-name">{{ item.name }}</h3>
-              <p class="item-meta">Color: {{ item.variant || 'Default' }} | {{ item.category }}</p>
+              <p class="item-meta">{{ $t('common.color') }}: {{ item.variant || $t('common.default') }} | {{ item.category }}</p>
               <span class="item-price">${{ item.price.toFixed(2) }}</span>
             </div>
             <div class="item-actions">
@@ -51,7 +51,7 @@
       <!-- Order Summary Sidebar -->
       <aside class="summary-sidebar">
         <div class="summary-card">
-          <h2 class="summary-title">Order Summary</h2>
+          <h2 class="summary-title">{{ $t('cart.orderSummary') }}</h2>
 
           <div class="summary-rows">
             <div class="summary-row">
@@ -60,7 +60,7 @@
             </div>
             <div class="summary-row">
               <span>{{ $t('cart.shipping') }}</span>
-              <span class="summary-value">{{ shipping === 0 ? 'Free' : '$' + shipping.toFixed(2) }}</span>
+              <span class="summary-value">{{ shipping === 0 ? $t('cart.free') : '$' + shipping.toFixed(2) }}</span>
             </div>
             <div class="summary-row">
               <span>{{ $t('cart.tax') }}</span>
@@ -83,7 +83,7 @@
             <el-icon><arrow-right /></el-icon>
           </el-button>
 
-          <p class="checkout-note">Taxes and shipping calculated at checkout.</p>
+          <p class="checkout-note">{{ $t('cart.taxCalculatedAtCheckout') }}</p>
 
           <!-- Payment Icons -->
           <div class="payment-icons">
@@ -98,11 +98,11 @@
         <div class="promo-card">
           <el-input
             v-model="promoCode"
-            placeholder="Promo code"
+            :placeholder="$t('cart.promoCode')"
             size="large"
           >
             <template #append>
-              <el-button type="primary" @click="applyPromo">Apply</el-button>
+              <el-button type="primary" @click="applyPromo">{{ $t('cart.apply') }}</el-button>
             </template>
           </el-input>
         </div>

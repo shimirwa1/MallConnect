@@ -4,7 +4,7 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">{{ $t('common.products') }}</h1>
-        <p class="page-subtitle">Browse our curated collection from top sellers</p>
+        <p class="page-subtitle">{{ $t('products.subtitle') }}</p>
       </div>
     </div>
 
@@ -13,7 +13,7 @@
       <el-input
         v-model="searchQuery"
         size="large"
-        placeholder="Search products..."
+        :placeholder="$t('products.searchPlaceholder')"
         class="search-input"
         clearable
         @keyup.enter="handleSearch"
@@ -23,7 +23,7 @@
         </template>
       </el-input>
 
-      <el-select v-model="selectedCategoryId" size="large" placeholder="All Categories" class="category-select" clearable>
+      <el-select v-model="selectedCategoryId" size="large" :placeholder="$t('products.allCategories')" class="category-select" clearable>
         <el-option
           v-for="cat in categories"
           :key="cat.id"
@@ -33,9 +33,9 @@
       </el-select>
 
       <el-select v-model="sortBy" size="large" class="sort-select">
-        <el-option label="Newest" value="createdAt,desc" />
-        <el-option label="Price: Low to High" value="price,asc" />
-        <el-option label="Price: High to Low" value="price,desc" />
+        <el-option :label="$t('products.newest')" value="createdAt,desc" />
+        <el-option :label="$t('products.priceLowToHigh')" value="price,asc" />
+        <el-option :label="$t('products.priceHighToLow')" value="price,desc" />
       </el-select>
     </div>
 
@@ -48,7 +48,7 @@
         type="warning"
         @close="clearSellerFilter"
       >
-        Store: {{ route.query.seller || 'Seller' }}
+        {{ $t('products.storePrefix', { name: route.query.seller || $t('common.seller') }) }}
       </el-tag>
       <el-tag
         v-if="selectedCategoryId"
@@ -66,7 +66,7 @@
       >
         "{{ searchQuery }}"
       </el-tag>
-      <span class="results-count">{{ totalResults }} results</span>
+      <span class="results-count">{{ totalResults }} {{ $t('common.results') }}</span>
     </div>
 
     <!-- Loading State -->
@@ -95,7 +95,7 @@
           <img :src="product.imageUrl || 'https://via.placeholder.com/400x400'" :alt="product.name" />
         </div>
         <div class="product-info">
-          <p class="product-category">{{ product.categoryName || 'Uncategorized' }}</p>
+          <p class="product-category">{{ product.categoryName || $t('common.uncategorized') }}</p>
           <h3 class="product-name">{{ product.name }}</h3>
           <div class="product-footer">
             <span class="price">${{ (product.price || 0).toFixed(2) }}</span>
@@ -113,7 +113,7 @@
 
       <div v-if="products.length === 0" class="no-results">
         <el-icon :size="48" color="#c4c6cd"><search /></el-icon>
-        <p>No products found matching your criteria</p>
+        <p>{{ $t('products.noResults') }}</p>
       </div>
     </div>
 

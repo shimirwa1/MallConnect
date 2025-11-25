@@ -6,14 +6,14 @@
         <span class="hero-badge">{{ $t('home.subtitle') }}</span>
         <h1 class="hero-title">{{ $t('home.title') }}</h1>
         <p class="hero-description">
-          Discover the latest arrivals from world-renowned brands and enjoy exclusive member-only deals this season.
+          {{ $t('home.heroDescription') }}
         </p>
         <div class="hero-buttons">
           <el-button type="primary" size="large" class="hero-button" @click="$router.push('/products')">
             {{ $t('home.exploreDeals') }}
           </el-button>
           <el-button size="large" class="hero-button-outline" @click="$router.push('/events')">
-            View Events
+            {{ $t('home.viewEvents') }}
           </el-button>
         </div>
       </div>
@@ -24,10 +24,10 @@
       <div class="section-header">
         <div>
           <h2 class="section-title">{{ $t('home.shopByCategory') }}</h2>
-          <p class="section-subtitle">Curated collections for every lifestyle</p>
+          <p class="section-subtitle">{{ $t('home.categorySubtitle') }}</p>
         </div>
-        <el-button type="text" class="view-all-btn">
-          View All Categories <el-icon><arrow-right /></el-icon>
+        <el-button type="text" class="view-all-btn" @click="$router.push('/products')">
+          {{ $t('home.viewAllCategories') }} <el-icon><arrow-right /></el-icon>
         </el-button>
       </div>
       
@@ -46,7 +46,7 @@
         >
           <div class="category-content">
             <h3>{{ cat.name }}</h3>
-            <p>{{ cat.description || 'Explore our collection' }}</p>
+            <p>{{ cat.description || $t('home.exploreCollection') }}</p>
           </div>
         </div>
       </div>
@@ -57,10 +57,10 @@
       <div class="section-header">
         <div>
           <h2 class="section-title">{{ $t('home.featuredProducts') }}</h2>
-          <p class="section-subtitle">Handpicked just for you</p>
+          <p class="section-subtitle">{{ $t('home.featuredSubtitle') }}</p>
         </div>
         <el-button type="text" class="view-all-btn" @click="$router.push('/products')">
-          View All Products <el-icon><arrow-right /></el-icon>
+          {{ $t('home.viewAllProducts') }} <el-icon><arrow-right /></el-icon>
         </el-button>
       </div>
       
@@ -88,11 +88,11 @@
           <div class="product-image">
             <img :src="product.imageUrl || 'https://via.placeholder.com/300'" :alt="product.name" />
             <span v-if="index < 2" :class="['product-badge', index === 0 ? 'hot' : 'new']">
-              {{ index === 0 ? 'HOT' : 'NEW' }}
+              {{ index === 0 ? $t('home.hot') : $t('home.new') }}
             </span>
           </div>
           <div class="product-info">
-            <p class="product-category">{{ product.categoryName || 'Uncategorized' }}</p>
+            <p class="product-category">{{ product.categoryName || $t('common.uncategorized') }}</p>
             <h4 class="product-name">{{ product.name }}</h4>
             <div class="product-price">
               <span class="price">${{ (product.price || 0).toFixed(2) }}</span>
@@ -117,12 +117,12 @@
         <el-icon class="newsletter-icon"><message /></el-icon>
         <h2 class="newsletter-title">{{ $t('home.joinInnerCircle') }}</h2>
         <p class="newsletter-description">
-          Get expert shopping guides, exclusive invites to mall events, and early notification of seasonal sales.
+          {{ $t('home.newsletterDescription') }}
         </p>
         <div class="newsletter-form">
           <el-input
             v-model="email"
-            placeholder="Your professional email"
+            :placeholder="$t('home.newsletterPlaceholder')"
             size="large"
             class="newsletter-input"
           />
@@ -130,7 +130,7 @@
             {{ $t('home.subscribe') }}
           </el-button>
         </div>
-        <p class="newsletter-privacy">We value your privacy. Unsubscribe at any time.</p>
+        <p class="newsletter-privacy">{{ $t('home.newsletterPrivacy') }}</p>
       </div>
     </section>
   </div>
@@ -138,11 +138,13 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { productsAPI } from '@/services/api'
 import { ElMessage } from 'element-plus'
 
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 
@@ -201,7 +203,7 @@ const addToCart = (product) => {
     stock: product.stock,
     category: product.categoryName
   })
-  ElMessage.success('Added to cart!')
+  ElMessage.success(t('Added to cart!'))
 }
 
 onMounted(() => {
@@ -216,7 +218,6 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-/* Hero Section */
 .hero-section {
   height: 600px;
   background: linear-gradient(135deg, rgba(4, 22, 39, 0.9) 0%, rgba(0, 88, 188, 0.7) 100%);
@@ -279,7 +280,6 @@ onMounted(() => {
   font-weight: 700;
 }
 
-/* Category Section */
 .category-section {
   padding: 0 32px;
   margin-bottom: 96px;
@@ -378,7 +378,6 @@ onMounted(() => {
   margin: 0;
 }
 
-/* Products Section */
 .products-section {
   padding: 0 32px;
   margin-bottom: 96px;
@@ -489,7 +488,6 @@ onMounted(() => {
   border-color: #0058bc;
 }
 
-/* Newsletter Section */
 .newsletter-section {
   padding: 96px 32px;
 }

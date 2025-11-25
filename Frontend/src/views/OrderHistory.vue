@@ -24,10 +24,10 @@
       <!-- Empty State -->
       <div v-if="filteredOrders.length === 0" class="empty-orders">
         <el-icon :size="64" color="#c4c6cd"><receipt /></el-icon>
-        <h2>No orders found</h2>
-        <p>{{ activeTab === 'all' ? 'You haven\'t placed any orders yet.' : `No ${activeTab} orders.` }}</p>
+        <h2>{{ $t('order.noOrders') }}</h2>
+        <p>{{ activeTab === 'all' ? $t('order.noOrdersMessage') : $t('order.noStatusOrders', { status: activeTab }) }}</p>
         <router-link to="/products">
-          <el-button type="primary" size="large">Start Shopping</el-button>
+          <el-button type="primary" size="large">{{ $t('order.startShopping') }}</el-button>
         </router-link>
       </div>
 
@@ -38,19 +38,19 @@
           <div class="order-header">
             <div class="order-meta">
               <div>
-                <span class="meta-label">Order ID</span>
+                <span class="meta-label">{{ $t('order.orderId') }}</span>
                 <span class="meta-value">{{ order.id }}</span>
               </div>
               <div>
-                <span class="meta-label">Placed On</span>
+                <span class="meta-label">{{ $t('order.placedOn') }}</span>
                 <span class="meta-value">{{ order.date }}</span>
               </div>
               <div>
-                <span class="meta-label">Total</span>
+                <span class="meta-label">{{ $t('order.total') }}</span>
                 <span class="meta-value price">${{ order.total.toFixed(2) }}</span>
               </div>
               <div>
-                <span class="meta-label">Items</span>
+                <span class="meta-label">{{ $t('order.items') }}</span>
                 <span class="meta-value">{{ order.items.reduce((sum, item) => sum + item.quantity, 0) }}</span>
               </div>
             </div>
@@ -84,17 +84,17 @@
               </div>
               <div class="item-info">
                 <h4>{{ item.name }}</h4>
-                <p>Qty: {{ item.quantity }}</p>
+                <p>{{ $t('order.qty', { qty: item.quantity }) }}</p>
               </div>
               <span class="item-price">${{ item.price.toFixed(2) }}</span>
             </div>
             <div class="order-actions">
-              <el-button @click="viewOrderDetail(order)">View Details</el-button>
+              <el-button @click="viewOrderDetail(order)">{{ $t('order.viewDetails') }}</el-button>
               <el-button v-if="order.status === 'PENDING' || order.status === 'CONFIRMED'" type="primary" plain>
-                Track Package
+                {{ $t('order.trackPackage') }}
               </el-button>
               <el-button v-if="order.status === 'PENDING'" type="danger" plain @click="cancelOrder(order)">
-                Cancel Order
+                {{ $t('order.cancelOrder') }}
               </el-button>
             </div>
           </div>
@@ -113,16 +113,19 @@ const activeTab = ref('all')
 const expandedOrders = ref([])
 const loading = ref(true)
 
-const orderTabs = [
-  { id: 'all', label: 'All Orders', count: null },
-  { id: 'PENDING', label: 'Pending', count: null },
-  { id: 'CONFIRMED', label: 'Confirmed', count: null },
-  { id: 'SHIPPED', label: 'Shipped', count: null },
-  { id: 'DELIVERED', label: 'Delivered', count: null },
-  { id: 'CANCELLED', label: 'Cancelled', count: null }
-]
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
-const trackingSteps = ['Placed', 'Confirmed', 'Shipped', 'Delivered']
+const orderTabs = computed(() => [
+  { id: 'all', label: t('order.allOrders'), count: null },
+  { id: 'PENDING', label: t('order.pending'), count: null },
+  { id: 'CONFIRMED', label: t('order.confirmed'), count: null },
+  { id: 'SHIPPED', label: t('order.shipped'), count: null },
+  { id: 'DELIVERED', label: t('order.delivered'), count: null },
+  { id: 'CANCELLED', label: t('order.cancelled'), count: null }
+])
+
+const trackingSteps = computed(() => [t('order.placed'), t('order.confirmed'), t('order.shipped'), t('order.delivered')])
 const statusToTrackingIdx = {
   PENDING: 0,
   CONFIRMED: 1,

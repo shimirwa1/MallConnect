@@ -9,37 +9,37 @@
         <div class="checkout-section">
           <div class="section-header">
             <span class="section-number">1</span>
-            <h2>Shipping Address</h2>
+            <h2>{{ $t('checkout.shippingAddress') }}</h2>
           </div>
 
           <el-form :model="shipping" label-position="top" class="checkout-form">
             <el-row :gutter="16">
               <el-col :span="12">
-                <el-form-item label="First Name" required>
-                  <el-input v-model="shipping.firstName" size="large" placeholder="John" />
+                <el-form-item :label="$t('checkout.firstName')" required>
+                  <el-input v-model="shipping.firstName" size="large" :placeholder="$t('auth.placeholderFirstName')" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="Last Name" required>
-                  <el-input v-model="shipping.lastName" size="large" placeholder="Doe" />
+                <el-form-item :label="$t('checkout.lastName')" required>
+                  <el-input v-model="shipping.lastName" size="large" :placeholder="$t('auth.placeholderLastName')" />
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-form-item label="Address" required>
+            <el-form-item :label="$t('checkout.address')" required>
               <el-input v-model="shipping.address" size="large" placeholder="123 Main Street" />
             </el-form-item>
-            <el-form-item label="Apartment, suite, etc. (optional)">
+            <el-form-item :label="$t('checkout.aptOptional')">
               <el-input v-model="shipping.apt" size="large" placeholder="Apt 4B" />
             </el-form-item>
             <el-row :gutter="16">
               <el-col :span="8">
-                <el-form-item label="City" required>
+                <el-form-item :label="$t('checkout.city')" required>
                   <el-input v-model="shipping.city" size="large" placeholder="New York" />
                 </el-form-item>
               </el-col>
               <el-col :span="8">
-                <el-form-item label="State" required>
-                  <el-select v-model="shipping.state" size="large" placeholder="Select">
+                <el-form-item :label="$t('checkout.state')" required>
+                  <el-select v-model="shipping.state" size="large" :placeholder="$t('checkout.select')">
                     <el-option label="New York" value="NY" />
                     <el-option label="California" value="CA" />
                     <el-option label="Texas" value="TX" />
@@ -48,12 +48,12 @@
                 </el-form-item>
               </el-col>
               <el-col :span="8">
-                <el-form-item label="ZIP Code" required>
+                <el-form-item :label="$t('checkout.zipCode')" required>
                   <el-input v-model="shipping.zip" size="large" placeholder="10001" />
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-form-item label="Phone">
+            <el-form-item :label="$t('checkout.phone')">
               <el-input v-model="shipping.phone" size="large" placeholder="+1 (555) 000-0000" />
             </el-form-item>
           </el-form>
@@ -63,8 +63,8 @@
         <div class="checkout-section">
           <div class="section-header">
             <span class="section-number">2</span>
-            <h2>Payment Method</h2>
-            <span class="simulation-badge">SIMULATION MODE</span>
+            <h2>{{ $t('checkout.paymentMethod') }}</h2>
+            <span class="simulation-badge">{{ $t('checkout.simulationMode') }}</span>
           </div>
 
           <div class="payment-options">
@@ -85,7 +85,7 @@
 
           <!-- Simulated Card Fields -->
           <div v-if="selectedPayment === 'card'" class="card-fields">
-            <el-form-item label="Card Number">
+            <el-form-item :label="$t('checkout.cardNumber')">
               <el-input size="large" placeholder="4242 4242 4242 4242" maxlength="19">
                 <template #suffix>
                   <el-icon><credit-card /></el-icon>
@@ -94,17 +94,17 @@
             </el-form-item>
             <el-row :gutter="16">
               <el-col :span="12">
-                <el-form-item label="Expiry Date">
+                <el-form-item :label="$t('checkout.expiryDate')">
                   <el-input size="large" placeholder="MM / YY" maxlength="5" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="CVC">
+                <el-form-item :label="$t('checkout.cvc')">
                   <el-input size="large" placeholder="123" maxlength="4" type="password" />
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-form-item label="Cardholder Name">
+            <el-form-item :label="$t('checkout.cardholderName')">
               <el-input size="large" placeholder="John Doe" />
             </el-form-item>
           </div>
@@ -114,7 +114,7 @@
         <div class="checkout-section">
           <div class="section-header">
             <span class="section-number">3</span>
-            <h2>Review Your Order</h2>
+            <h2>{{ $t('checkout.reviewOrder') }}</h2>
           </div>
 
           <div class="order-items">
@@ -136,24 +136,24 @@
       <!-- Order Summary Sidebar -->
       <aside class="checkout-sidebar">
         <div class="summary-card">
-          <h3>Order Summary</h3>
+          <h3>{{ $t('checkout.orderSummary') }}</h3>
 
           <div class="summary-rows">
             <div class="summary-row">
-              <span>Subtotal ({{ authStore.cartCount }} items)</span>
+              <span>{{ $t('checkout.subtotalItems', { count: authStore.cartCount }) }}</span>
               <span>${{ subtotal.toFixed(2) }}</span>
             </div>
             <div class="summary-row">
-              <span>Shipping</span>
-              <span>{{ shippingCost === 0 ? 'Free' : '$' + shippingCost.toFixed(2) }}</span>
+              <span>{{ $t('checkout.shipping') }}</span>
+              <span>{{ shippingCost === 0 ? $t('checkout.free') : '$' + shippingCost.toFixed(2) }}</span>
             </div>
             <div class="summary-row">
-              <span>Tax</span>
+              <span>{{ $t('checkout.tax') }}</span>
               <span>${{ tax.toFixed(2) }}</span>
             </div>
             <el-divider />
             <div class="summary-row total-row">
-              <span>Total</span>
+              <span>{{ $t('checkout.total') }}</span>
               <span class="total-price">${{ total.toFixed(2) }}</span>
             </div>
           </div>
@@ -165,12 +165,12 @@
             :loading="placing"
             @click="handlePlaceOrder"
           >
-            Place Order — ${{ total.toFixed(2) }}
+            {{ $t('checkout.placeOrder', { total: total.toFixed(2) }) }}
           </el-button>
 
           <p class="secure-note">
             <el-icon><shield /></el-icon>
-            Secure checkout. Your data is encrypted.
+            {{ $t('checkout.secureCheckout') }}
           </p>
         </div>
       </aside>
@@ -180,6 +180,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ordersAPI, cartAPI } from '@/services/api'
@@ -202,11 +203,13 @@ const shipping = ref({
   phone: ''
 })
 
-const paymentMethods = [
-  { id: 'card', name: 'Credit / Debit Card', description: 'Visa, Mastercard, Amex' },
-  { id: 'paypal', name: 'PayPal', description: 'Pay with your PayPal account' },
-  { id: 'cod', name: 'Cash on Delivery', description: 'Pay when you receive' }
-]
+const { t } = useI18n()
+
+const paymentMethods = computed(() => [
+  { id: 'card', name: t('checkout.creditCard'), description: t('checkout.creditCardDesc') },
+  { id: 'paypal', name: t('checkout.paypal'), description: t('checkout.paypalDesc') },
+  { id: 'cod', name: t('checkout.cashOnDelivery'), description: t('checkout.cashOnDeliveryDesc') }
+])
 
 const subtotal = computed(() =>
   authStore.cartItems.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 0)), 0)
@@ -217,12 +220,12 @@ const total = computed(() => subtotal.value + shippingCost.value + tax.value)
 
 const handlePlaceOrder = async () => {
   if (!shipping.value.firstName || !shipping.value.lastName || !shipping.value.address) {
-    ElMessage.warning('Please fill in all required shipping fields')
+    ElMessage.warning(t('Please fill in all required shipping fields'))
     return
   }
 
   if (authStore.cartItems.length === 0) {
-    ElMessage.warning('Your cart is empty')
+    ElMessage.warning(t('cart.emptyCart'))
     return
   }
 

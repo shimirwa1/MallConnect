@@ -2,7 +2,7 @@
   <div class="login-page">
     <div class="login-container">
       <div class="login-header">
-        <h1>MallConnect</h1>
+        <h1>{{ $t('nav.brand') }}</h1>
         <p>{{ $t('auth.loginTitle') }}</p>
       </div>
       

@@ -3,8 +3,8 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-brand">
-        <span class="brand-name">MallConnect</span>
-        <p class="brand-sub">Admin Central</p>
+        <span class="brand-name">{{ $t('nav.brand') }}</span>
+        <p class="brand-sub">{{ $t('admin.adminCentral') }}</p>
       </div>
       <nav class="sidebar-nav">
         <a class="nav-item active" href="#">
@@ -31,7 +31,7 @@
       <div class="sidebar-footer">
         <a class="nav-item" href="#">
           <el-icon><setting /></el-icon>
-          <span>Settings</span>
+          <span>{{ $t('admin.settings') }}</span>
         </a>
         <div class="admin-info">
           <div class="admin-avatar">{{ adminInitials }}</div>
@@ -46,7 +46,7 @@
     <!-- Main Content -->
     <div class="main-area">
       <header class="top-bar">
-        <h1>Dashboard Overview</h1>
+        <h1>{{ $t('admin.dashboardOverview') }}</h1>
         <div class="top-actions">
           <el-input placeholder="Global Search..." prefix-icon="Search" class="global-search" />
           <el-badge is-dot>
