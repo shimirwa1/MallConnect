@@ -79,8 +79,6 @@ cooperation with Nana/
 │   │   └── views/               # Page components
 │   ├── vite.config.js
 │   └── package.json
-├── prd.md                       # Product Requirements Document
-├── mvp.md                       # MVP scope & timeline
 └── README.md
 ```
 
@@ -186,18 +184,8 @@ All endpoints are prefixed with `/api/v1`.
 - [x] Shopping cart & checkout
 - [x] Order management (customer, seller, admin)
 - [x] Multi-language support (EN + ZH)
-- [ ] Product reviews & ratings *(Phase 2)*
-- [ ] Advanced analytics dashboard *(Phase 2)*
-- [ ] Real payment gateway integration *(Post-MVP)*
-- [ ] Cloud image storage *(Post-MVP)*
 
 ---
-
-## Documentation
-
-- **[prd.md](./prd.md)** — Full Product Requirements Document
-- **[mvp.md](./mvp.md)** — MVP Scope, timeline, and feature checklist
-
 ---
 
 ## License
